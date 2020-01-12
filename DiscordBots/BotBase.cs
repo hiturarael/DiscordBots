@@ -9,13 +9,12 @@ namespace DiscordBots
 {
     public class BotBase
     {
-        public string StrCmd { get; set; }
-        public string StrBotToken { get; set; }
+        public static string StrCmd { get; set; }
+        public static string StrBotToken { get; set; }
         private DiscordSocketClient _client;
 
-
         public static void Main(string[] args)
-        => new BotBase().MainAsync().GetAwaiter().GetResult();
+    => new BotBase().MainAsync().GetAwaiter().GetResult();
 
         public async Task MainAsync()
         {

@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="2.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="DiscordBots">
       <HintPath>..\DiscordBots\bin\Debug\netcoreapp3.1\DiscordBots.dll</HintPath>
     </Reference>
