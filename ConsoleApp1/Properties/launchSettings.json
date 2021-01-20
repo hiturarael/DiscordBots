@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "Nine": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "Key": "Value",
+        "NineToken": "NjY1NjY3Nzg4NTM0NDQ4MTM5.Xho9cA.7C7u_GdvANH4bPdVsWm5hvVJIjc"
+      },
+      "sqlDebugging": true,
+      "nativeDebugging": true
+    }
+  }
+}

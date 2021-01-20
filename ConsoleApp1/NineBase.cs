@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Text;
 using DiscordBots;
 using Discord;
@@ -13,10 +13,10 @@ namespace Nine
         private static void Start()
         {
             StrCmd = "9";
-            StrBotToken = "NjY1NjY3Nzg4NTM0NDQ4MTM5.XhpUCg.9T6S7tbEDq-FOxL2YyeTg1ziAd0";
+            StrBotToken = Environment.GetEnvironmentVariable("NineToken");
         }
 
-        public static void Main(string[] args)
+        public static new void Main()
         {
             Start();
             new BotBase().MainAsync().GetAwaiter().GetResult();

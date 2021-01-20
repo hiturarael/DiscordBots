@@ -9,13 +9,14 @@ using Discord.WebSocket;
 
 namespace DiscordBots
 {
-	class Logging
+	public class Logging
 	{
 		public Logging(DiscordSocketClient client, CommandService command)
 		{
 			client.Log += LogAsync;
 			command.Log += LogAsync;
 		}
+
 		private Task LogAsync(LogMessage message)
 		{
 			if (message.Exception is CommandException cmdException)
