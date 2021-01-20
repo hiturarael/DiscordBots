@@ -339,3 +339,6 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 ConsoleApp1/NineBase.cs
+ConsoleApp1/Properties/launchSettings.json
+ConsoleApp1/Properties/Resources.Designer.cs
+ConsoleApp1/Properties/Resources.resx
