@@ -17,10 +17,10 @@ namespace Nine
         }
 
         public static new void Main()
-        {
+        { 
             Start();
-            new BotBase().MainAsync().GetAwaiter().GetResult();
+            new BotBase();
+            BotBase.Main();
         }
-
     }
 }

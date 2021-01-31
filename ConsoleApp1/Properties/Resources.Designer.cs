@@ -61,7 +61,7 @@ namespace Nine.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to NjY1NjY3Nzg4NTM0NDQ4MTM5.Xho9cA.7C7u_GdvANH4bPdVsWm5hvVJIjc.
+        ///   Looks up a localized string similar to NjY1NjY3Nzg4NTM0NDQ4MTM5.Xho9cA.uSBdRl7v1B0DcnYwWlR6eOUY8W0.
         /// </summary>
         internal static string NineToken {
             get {
