@@ -3,11 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29613.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordBots", "DiscordBots\DiscordBots.csproj", "{1E715982-5250-4E55-B788-6397060AE7DA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscordBots", "DiscordBots\DiscordBots.csproj", "{1E715982-5250-4E55-B788-6397060AE7DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nine", "ConsoleApp1\Nine.csproj", "{EEF0BE4E-DAC5-4B37-B10E-BC2B06C77444}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nine", "ConsoleApp1\Nine.csproj", "{EEF0BE4E-DAC5-4B37-B10E-BC2B06C77444}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1E715982-5250-4E55-B788-6397060AE7DA} = {1E715982-5250-4E55-B788-6397060AE7DA}
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SERAPHAdmin", "SERAPHAdmin\SERAPHAdmin.csproj", "{6993E190-9A31-4B5D-9AAC-A4B6A44A9746}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SERAPHAdmin", "SERAPHAdmin\SERAPHAdmin.csproj", "{6993E190-9A31-4B5D-9AAC-A4B6A44A9746}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

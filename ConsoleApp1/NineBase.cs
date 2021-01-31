@@ -5,6 +5,7 @@ using DiscordBots;
 using Discord;
 using Discord.WebSocket;
 using System.Threading.Tasks;
+using DiscordBots.SQL;
 
 namespace Nine
 {
