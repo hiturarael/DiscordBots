@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using DSharpPlus;
+using DiscordBots.Commands;
 
 namespace DiscordBots
 {
@@ -24,8 +25,14 @@ namespace DiscordBots
 
             discord.MessageCreated += async (e) =>
             {
-                if (e.Message.Content.ToLower().StartsWith("ping"))
-                    await e.Message.RespondAsync("pong!");
+                if (e.Message.Content.ToLower().StartsWith("9"))
+                {
+                  Task<string> task = Task.Run(() => Command.ExecCommand(e.Message));
+                    task.Wait();
+
+                    await e.Message.RespondAsync(task.Result);
+                }
+                    
 
             };
 
