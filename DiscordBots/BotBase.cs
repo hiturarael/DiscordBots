@@ -27,7 +27,7 @@ namespace DiscordBots
             {
                 if (e.Message.Content.ToLower().StartsWith("9"))
                 {
-                  Task<string> task = Task.Run(() => Command.ExecCommand(e.Message));
+                  Task<string> task = Task.Run(() => Command.ExecCommand(StrCmd, e.Message));
                     task.Wait();
 
                     await e.Message.RespondAsync(task.Result);
