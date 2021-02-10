@@ -26,7 +26,7 @@ namespace DiscordBots.SQL
 
                 connection.Open();
             }
-            catch 
+            catch (Exception ex)
             {
                 connection = null;
             }

@@ -1,27 +1,44 @@
 ﻿using System;
 using System.Collections;
 using System.Text;
-using DiscordBots;
-using Discord;
-using Discord.WebSocket;
 using System.Threading.Tasks;
-using DiscordBots.SQL;
+using DSharpPlus;
+using DiscordBots.Commands;
 
 namespace Nine
 {
-    public class NineBot : BotBase
+    public class NineBot
     {
-        private static void Start()
+        public static string StrCmd = "9";
+        public static string StrBotToken = Environment.GetEnvironmentVariable("NineToken");
+
+        public static void Main()
         {
-            StrCmd = "9";
-            StrBotToken = Environment.GetEnvironmentVariable("NineToken");
+            MainAsync().GetAwaiter().GetResult();
         }
 
-        public static new void Main()
-        { 
-            Start();
-            new BotBase();
-            BotBase.Main();
+        static async Task MainAsync()
+        {
+            var discord = new DiscordClient(new DiscordConfiguration()
+            {
+                Token = StrBotToken,
+                TokenType = TokenType.Bot
+            });
+
+            discord.MessageCreated += async (e) =>
+            {
+                if (e.Message.Content.ToLower().StartsWith("9"))
+                {
+                    Task<string> task = Task.Run(() => Command.ExecCommand(StrCmd, e.Message));
+                    task.Wait();
+
+                    await e.Message.RespondAsync(task.Result);
+                }
+            };
+
+            await discord.ConnectAsync();
+            await Task.Delay(-1);
         }
+
     }
 }

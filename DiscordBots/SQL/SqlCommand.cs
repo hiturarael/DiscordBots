@@ -19,7 +19,6 @@ namespace DiscordBots.SQL
 
             try
             {
-
                 //create the command
                 cmd = conn.CreateCommand();
                 cmd.CommandText = query;
