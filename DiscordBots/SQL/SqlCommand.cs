@@ -45,10 +45,9 @@ namespace DiscordBots.SQL
             return dt;
         }
 
-        public static void ExecuteQuery_Insert(string query, string[] parameters, string[] parameterValues)
+        public static void ExecuteQuery_Params(string query, string[] parameters, string[] parameterValues)
         {
             MySqlCommand cmd;
-            DataTable dt = new DataTable();
 
             //create and open connection
             MySqlConnection conn = Connect.ConnectDB();

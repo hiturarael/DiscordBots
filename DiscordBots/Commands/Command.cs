@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace DiscordBots.Commands
@@ -9,13 +10,24 @@ namespace DiscordBots.Commands
     {
         public static string ExecCommand(string strCommand, DSharpPlus.Entities.DiscordMessage message)
         {
-            string response = "";
+            string response;
             string value = "";
-            string[] content = message.Content.Split(" ");
+            string regex = "9[a-zA-z]";
+            string conts;
+
+            if (Regex.IsMatch(message.Content, regex))
+            {
+                conts = message.Content.Insert(1, " ");
+            } else
+            {
+                conts = message.Content;
+            }
+
+            string[] content = conts.Split(" ");
             switch (content[1].ToLower())
             {
                 case "ping":
-                    response = "Pong!";
+                    response = "Do I look like an old Atari to you?";
                     break;
                 case "whoplays":
 
@@ -78,7 +90,7 @@ namespace DiscordBots.Commands
                         }
                     } else
                     {
-                        response = $"Your request was put in the wrong format. Correct format is 9 {content[1].ToLower()} <thread title> <url> <alias>";
+                        response = $"Your request was put in the wrong format. Correct format is {strCommand} {content[1].ToLower()} <thread title> <url> <alias>";
                     }
 
                     break;
