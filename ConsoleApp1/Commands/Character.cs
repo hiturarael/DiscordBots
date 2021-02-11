@@ -8,6 +8,8 @@ namespace Nine
 {
     public class Character
     {
+        public static readonly bool testing = true;
+
         public static string WhoPlays(string name)
         {
             string table = "nine_whoplays";
@@ -17,7 +19,7 @@ namespace Nine
 
             try
             {
-                DataTable dt = SqlCommand.ExecuteQuery(query);
+                DataTable dt = SqlCommand.ExecuteQuery(query,testing);
 
                 if (dt.Rows.Count == 0)
                 {

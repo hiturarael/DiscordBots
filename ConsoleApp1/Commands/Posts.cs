@@ -16,6 +16,8 @@ namespace Nine.Commands
             Abandoned
         }
 
+        public static readonly bool testing = true;
+
         public static string AddThread(string threadName, string url, string alias)
         {
             string result;
@@ -35,7 +37,7 @@ namespace Nine.Commands
 
             try
             {
-                DataTable dt = SqlCommand.ExecuteQuery(aliasQuery);
+                DataTable dt = SqlCommand.ExecuteQuery(aliasQuery, testing);
 
                 if (dt.Rows.Count < 1)
                 {
@@ -44,7 +46,7 @@ namespace Nine.Commands
                     errors += 1;
                 }
 
-                dt = SqlCommand.ExecuteQuery(threadQuery);
+                dt = SqlCommand.ExecuteQuery(threadQuery, testing);
 
                 if (dt.Rows.Count < 1)
                 {
@@ -53,7 +55,7 @@ namespace Nine.Commands
                     errors += 2;
                 }
 
-                dt = SqlCommand.ExecuteQuery(urlQuery);
+                dt = SqlCommand.ExecuteQuery(urlQuery, testing);
 
                 if (dt.Rows.Count < 1)
                 {
@@ -66,7 +68,7 @@ namespace Nine.Commands
                 {
                     SqlCommand.ExecuteQuery_Params(query, parameters, values);
 
-                    dt = SqlCommand.ExecuteQuery(aliasQuery);
+                    dt = SqlCommand.ExecuteQuery(aliasQuery, testing);
 
                     if (dt.Rows.Count > 1)
                     {
@@ -117,7 +119,7 @@ namespace Nine.Commands
 
             try
             {
-                DataTable dt = SqlCommand.ExecuteQuery(aliasQuery);
+                DataTable dt = null;
 
                 if (!Enum.IsDefined(typeof(ThreadStatus), status))
                 {
@@ -135,18 +137,18 @@ namespace Nine.Commands
 
                     if (threadId.Contains("https://") || threadId.Contains("srwignition.com"))
                     {
-                        dt = SqlCommand.ExecuteQuery(urlQuery);
+                        dt = SqlCommand.ExecuteQuery(urlQuery, testing);
                         column = "URL";
 
                         result = "... Why would you try to update with the url- You have a perfectly good title and alias! *Sigh* Whatever, meatbag...";
                     }
                     else
                     {
-                        dt = SqlCommand.ExecuteQuery(aliasQuery);
+                        dt = SqlCommand.ExecuteQuery(aliasQuery, testing);
                         column = "Alias";
                         if (dt.Rows.Count < 1)
                         {
-                            dt = SqlCommand.ExecuteQuery(threadQuery);
+                            dt = SqlCommand.ExecuteQuery(threadQuery, testing);
                             column = "Title";
                         }
                     }

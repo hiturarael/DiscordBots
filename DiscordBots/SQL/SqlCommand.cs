@@ -8,14 +8,14 @@ namespace DiscordBots.SQL
 {
     public class SqlCommand
     {
-        public static DataTable ExecuteQuery(string query)
+        public static DataTable ExecuteQuery(string query, bool testing = false)
         {
             MySqlCommand cmd;
             MySqlDataReader reader;
             DataTable dt = new DataTable();
 
             //create and open connection
-            MySqlConnection conn = Connect.ConnectDB();
+            MySqlConnection conn = Connect.ConnectDB(testing);
 
             try
             {
@@ -44,12 +44,12 @@ namespace DiscordBots.SQL
             return dt;
         }
 
-        public static void ExecuteQuery_Params(string query, string[] parameters, string[] parameterValues)
+        public static void ExecuteQuery_Params(string query, string[] parameters, string[] parameterValues, bool testing = false)
         {
             MySqlCommand cmd;
 
             //create and open connection
-            MySqlConnection conn = Connect.ConnectDB();
+            MySqlConnection conn = Connect.ConnectDB(testing);
 
             try
             {

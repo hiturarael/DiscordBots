@@ -8,13 +8,27 @@ namespace DiscordBots.SQL
 {
     public class Connect
     {
-        public static MySqlConnection ConnectDB()
+        public static MySqlConnection ConnectDB(bool testing = false)
         {
             string connString;
-            string host = Environment.GetEnvironmentVariable("host");
-            string catalog = Environment.GetEnvironmentVariable("Database");
-            string user = Environment.GetEnvironmentVariable("UserName");
-            string password = Environment.GetEnvironmentVariable("Password");
+            string host;
+            string catalog;
+            string user;
+            string password;
+
+            if(testing)
+            {
+                host = Environment.GetEnvironmentVariable("test_host");
+                catalog = Environment.GetEnvironmentVariable("test_database");
+                user = Environment.GetEnvironmentVariable("test_username");
+                password = Environment.GetEnvironmentVariable("test_password");
+            } else
+            {
+                host = Environment.GetEnvironmentVariable("host");
+                catalog = Environment.GetEnvironmentVariable("Database");
+                user = Environment.GetEnvironmentVariable("UserName");
+                password =  Environment.GetEnvironmentVariable("Password");
+            }
 
             MySqlConnection connection;
 
