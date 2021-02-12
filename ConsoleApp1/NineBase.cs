@@ -3,7 +3,6 @@ using System.Collections;
 using System.Text;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DiscordBots.Commands;
 
 namespace Nine
 {
@@ -29,7 +28,7 @@ namespace Nine
             {
                 if (e.Message.Content.ToLower().StartsWith("9"))
                 {
-                    Task<string> task = Task.Run(() => Command.ExecCommand(StrCmd, e.Message));
+                    Task<string> task = Task.Run(() => Commands.Commands.ExecCommand(StrCmd, e.Message));
                     task.Wait();
 
                     await e.Message.RespondAsync(task.Result);

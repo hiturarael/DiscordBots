@@ -29,9 +29,9 @@ namespace DiscordBots.SQL
                 //load data from reader
                 dt.Load(reader);
             }
-            catch 
+            catch (Exception ex)
             {
-                throw new Exception();
+                throw ex;
             }
             finally 
             {
@@ -65,9 +65,9 @@ namespace DiscordBots.SQL
                 //query database
                 cmd.ExecuteNonQuery();
             }
-            catch
+            catch (Exception ex)
             {
-                throw new Exception();
+                throw ex;
             }
             finally
             {

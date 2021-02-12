@@ -1,12 +1,13 @@
-﻿using DiscordBots.Commands;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using DSharpPlus.Entities;
+
 namespace Nine.Commands
 {
-    class Commands
+    public class Commands
     {
         public static string ExecCommand(string strCommand, DiscordMessage message)
         {
@@ -20,11 +21,17 @@ namespace Nine.Commands
                     response = "Do I look like an old Atari to you?";
                     break;
                 case "whoplays":
-                    WhoPlays(strCommand, content);
+                    response = WhoPlays(strCommand, content);
                     break;
                 case "addthread":
                 case "addpost":
-                    AddPost(strCommand, content);
+                    response = AddPost(strCommand, content);
+                    break;
+                case "updatethread":
+                    response = UpdatePost(strCommand, content);
+                    break;
+                case "addtopostorder":
+                    response = AddToPostOrder(strCommand, content);
                     break;
                 default:
                     response = $"No command exists for {content[1]}";
@@ -55,7 +62,7 @@ namespace Nine.Commands
         static string WhoPlays(string strCommand, string[] content)
         {
             string value = "";
-            string response = "";
+            string response;
             if (content.Length > 2)
             {
                 for (int x = 2; x < content.Length; x++)
@@ -65,7 +72,7 @@ namespace Nine.Commands
 
                 value = value.Trim();
 
-                response = Characters.WhoPlays(value);
+                response = Character.WhoPlays(value);
             }
             else
             {
@@ -135,7 +142,7 @@ namespace Nine.Commands
 
         static string UpdatePost(string strCommand, string[] content)
         {
-            string response = "";
+            string response;
 
             if(content.Length > 2)
             {
@@ -166,6 +173,67 @@ namespace Nine.Commands
             } else
             {
                 response = $"Your request was put in the wrong format. Correct format is {strCommand} {content[1].ToLower()} <thread title or alias> <thread satus>";
+            }
+
+            return response;
+        }
+
+        static string AddToPostOrder(string strCommand, string[] content)
+        {
+            string response = "";
+            
+            if (content.Length > 4)
+            {
+                bool userIDFound = false;
+                string title = "";
+                string position = "";
+                string user = "";
+                for(int x = 2; x < content.Length; x++)
+                {
+                    if(content[x].Contains("@!"))
+                    {
+                        user = content[x];
+                        userIDFound = true;
+                    } else
+                    {
+                        if(!userIDFound)
+                        {
+                            title += $"{content[x]} ";
+                        } else
+                        {                            
+                            position = content[x];
+                        }
+                    }
+                }
+
+                title = title.Trim();
+                user = user.Trim();
+                position = position.Trim();
+
+                try
+                {
+                    Convert.ToInt32(position);
+                }
+                catch (Exception ex)
+                {
+                    if (ex.Message == "Input string was not in a correct format.")
+                    {
+                        response = $"Your request was put in the wrong format. Correct format is {strCommand} {content[1].ToLower()} <thread title or alias> <@player> <post order position>. And if you add in a non numeric character for position again I will send spiderbots to watch you in your sleep.";
+                    } else
+                    {
+                        throw ex;
+                    }
+                }
+
+                if (!response.Contains("spider"))
+                {
+                   response =  Posts.AddToPostOrder(title, user, position);
+                }
+
+            }
+            else
+            {
+                response = $"Your request was put in the wrong format. Correct format is {strCommand} {content[1].ToLower()} <thread title or alias> <@player> <post order position>";
             }
 
             return response;

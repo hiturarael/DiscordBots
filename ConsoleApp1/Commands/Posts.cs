@@ -16,7 +16,7 @@ namespace Nine.Commands
             Abandoned
         }
 
-        public static readonly bool testing = true;
+        public static readonly bool testing = false;
 
         public static string AddThread(string threadName, string url, string alias)
         {
@@ -174,5 +174,115 @@ namespace Nine.Commands
             return result;
         }
 
+        public static string AddToPostOrder(string threadId, string player, string position)
+        {
+            string postOrderTable = "postorder";
+            string threadTable = "threads";
+
+            int threadNum = 0;
+            string result = "";
+
+
+            DataTable dt = QueryThread(threadTable, threadId);
+            //query thread exists in the thread table
+            if (dt.Rows.Count > 0)
+            {
+                DataRow dr = dt.Rows[0];
+                //get idnum
+                threadNum = Convert.ToInt32(dr["ID"]);
+
+                string addPlayerQuery = $"INSERT INTO {postOrderTable}(ThreadID, Player, PostPosition) VALUES(@threadId, @player, @position)";
+                string[] parameters = { "@threadId", "@player", "@position" };
+                string[] values = { threadNum.ToString(), player, position };
+
+                //check player is not added to list already
+                if (!PlayerAdded(postOrderTable, player))
+                {
+                    //check player post position is not already taken
+                    if(!PositionAdded(postOrderTable, position))
+                    {
+                        //add to post order
+                        try
+                        {
+                            SqlCommand.ExecuteQuery_Params(addPlayerQuery, parameters, values, testing);
+
+                            if (!PlayerAdded(postOrderTable, player))
+                            {
+                                result = "An unexpected error occured, please try again later.";
+                            }
+                            else
+                            {
+                                result = $"{player} has been added to the posting order";
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            result = ex.Message;
+                        }                        
+                    } else
+                    {
+                        result = $"{position} has already been added to the post order.";
+                    }
+                }
+                else {
+                    result = $"{player} has already been added to the post order.";
+                }
+                
+            } else
+            {
+                result = $"There is no thread in the database with the Title or Alias '{threadId}'.";
+            }
+
+            return result;
+        }
+
+        static DataTable QueryThread(string table, string threadId)
+        {
+            string threadTitleQuery = $"SELECT * from {table} where Title = '{threadId}'";
+            string threadAliasQuery = $"SELECT * from {table} where Alias = '{threadId}'";
+
+            DataTable dt = null;
+
+            dt = SqlCommand.ExecuteQuery(threadTitleQuery, testing);
+
+            if(dt.Rows.Count == 0)
+            {
+                dt = SqlCommand.ExecuteQuery(threadAliasQuery, testing);
+            }
+
+            return dt;
+        }
+
+        static bool PlayerAdded(string table, string PlayerID)
+        {
+            string playerQuery = $"SELECT Player from {table} where Player = '{PlayerID}'";
+
+            DataTable dt = SqlCommand.ExecuteQuery(playerQuery, testing);
+
+            if(dt.Rows.Count > 0)
+            {
+                return true; 
+            } else
+            {
+                return false;
+            }
+        }
+
+        static bool PositionAdded(string table, string positionNum)
+        {
+            string playerQuery = $"SELECT PostPosition from {table} where PostPosition = '{positionNum}'";
+
+            DataTable dt = SqlCommand.ExecuteQuery(playerQuery, testing);
+
+            if (dt.Rows.Count > 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
     }
 }
