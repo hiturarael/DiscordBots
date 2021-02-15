@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Nine.Commands
 {
@@ -119,12 +120,14 @@ namespace Nine.Commands
         public static string UpdateThread(string threadId, string status)
         {
             string table = "threads";
-            string aliasQuery = $"SELECT * from {table} WHERE Alias LIKE %{threadId}%";
-            string threadQuery = $"SELECT * from {table} WHERE Title LIKE %{threadId}%";
-            string urlQuery = $"SELECT * from {table} WHERE URL LIKE %{threadId}%";
+            string aliasQuery = $"SELECT * from {table} WHERE Alias LIKE '%{threadId}%'";
+            string threadQuery = $"SELECT * from {table} WHERE Title LIKE '%{threadId}%'";
+            string urlQuery = $"SELECT * from {table} WHERE URL LIKE '%{threadId}%'";
             string result = "";
             string column;
             string updateQuery;
+
+            status = char.ToUpper(status[0]) + status.Substring(1);
 
             string[] parameters = { "@Status" };
             string[] values = { status };
@@ -132,6 +135,8 @@ namespace Nine.Commands
             try
             {
                 DataTable dt = null;
+
+                status = char.ToUpper(status[0]) + status.Substring(1);
 
                 if (!Enum.IsDefined(typeof(ThreadStatus), status))
                 {
@@ -169,7 +174,7 @@ namespace Nine.Commands
                     {
                         //update the record
                         //updateQuery = $"UPDATE `{table}` SET `Status` = '{status}' WHERE `threads`.`{column}` = {threadId};";
-                        updateQuery = $"UPDATE {table} (Status) VALUES(@status) WHERE threads.{column} = {threadId};";
+                        updateQuery = $"UPDATE {table} SET Status=@status where {column} = '{threadId}'";//(Status) VALUES(@status) WHERE {column} = {threadId}";
                         //string query = $"INSERT INTO {table}(Title, Alias, URL, Status) VALUES(@title, @alias, @url, @status)";
 
                         SqlCommand.ExecuteQuery_Params(updateQuery, parameters, values);
@@ -177,6 +182,9 @@ namespace Nine.Commands
                         if (result == "")
                         {
                             result = "I have updated the status of the thread.";
+                        } else
+                        {
+                            result += " I have updated the status of the thread.";
                         }
                     } else
                     {

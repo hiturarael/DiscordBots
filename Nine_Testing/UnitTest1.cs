@@ -152,5 +152,115 @@ namespace Nine_Testing
             StringAssert.AreEqualIgnoringCase(expectedResult, result);
         }
         #endregion
+
+        #region Update Post/Update Thread
+        [TestCase("9 updatepost", "updatepost", Category = "Posts")]
+        [TestCase("9 updatethread", "updatethread", Category ="Posts")]
+        [TestCase("9 UpdatePost Test1", "UpdatePost", Category = "Posts")]
+        [TestCase("9 updatethread Test1", "updatethread", Category = "Posts")]
+        public void UpdatePost_WithNoArgs_Should_ReturnErrMsg(string message, string command)
+        {
+            string expectedResult = $"Your request was put in the wrong format. Correct format is 9 {command} <thread title or alias> <thread satus>";
+
+            string result = Nine.Commands.Commands.ExecCommand("9", message);
+
+            StringAssert.AreEqualIgnoringCase(expectedResult, result);
+
+        }
+
+        [TestCase("9 UpdatePost Test1 FakeStatus", Category = "Posts")]
+        [TestCase("9 updatethread Test1 FakeStatus", Category = "Posts")]
+        public void UpdatePost_WithBadStatus_Should_ReturnErrorMsg(string message)
+        {
+            string expectedResult = $"The status you are trying to update with is not valid. Use one of the following: /nOpen/nComplete/nHiatus/nAbandoned";
+
+            string result = Nine.Commands.Commands.ExecCommand("9", message);
+
+            StringAssert.AreEqualIgnoringCase(expectedResult, result);
+        }
+
+        [TestCase("9 updatepost https://srwignition.com/index.php?threads/hikaru-mizuki.375/#post-3099 open")]
+        [TestCase("9 updatethread https://srwignition.com/index.php?threads/hikaru-mizuki.375/#post-3099 complete")]
+        public void UpdatePost_WithURL_ShouldReturnUniqueMsg(string message)
+        {
+            string expectedResult = $"... Why would you try to update with the url- You have a perfectly good title and alias! *Sigh* Whatever, meatbag... I have updated the status of the thread.";
+
+            string result = Nine.Commands.Commands.ExecCommand("9", message);
+
+            StringAssert.AreEqualIgnoringCase(expectedResult, result);
+        }
+
+        [TestCase("9 updatepost Test1 Hiatus", Category ="Posts")]
+        [TestCase("9 updatethread Test1 Abandoned", Category = "Posts")]
+        [TestCase("9 updatepost Test Thread 1 Complete", Category = "Posts")]
+        [TestCase("9 updatethread Test Thread 1 Hiatus", Category = "Posts")]
+        public void UpdatePost_Should_UpdateTheThread(string message)
+        {
+            string expectedResult = $"I have updated the status of the thread.";
+
+            string result = Nine.Commands.Commands.ExecCommand("9", message);
+
+            StringAssert.AreEqualIgnoringCase(expectedResult, result);
+        }
+
+        [TestCase("9 updatepost NonExistantThread Open", Category = "Posts")]
+        [TestCase("9 updatethread NonExistantThread Open", Category = "Posts")]
+        public void UpdatePost_WithNonExistantIds_ShouldReturnErrorMsg(string message)
+        {
+            string expectedResult = $"There is no thread with that identifier. Please try again.";
+
+            string result = Nine.Commands.Commands.ExecCommand("9", message);
+
+            StringAssert.AreEqualIgnoringCase(expectedResult, result);
+        }
+        #endregion
+
+        #region Add To Post Order
+        [TestCase("9 addtopostorder", Category = "Posts")]
+        [TestCase("9 addtopostorder @!1234567 1", Category = "Posts")]
+        [TestCase("9 addtopostorder Test1 1", Category = "Posts")]
+        [TestCase("9 addtopostorder Test Thread 1 1", Category = "Posts")]
+        [TestCase("9 addtopostorder Starfall 1", Category = "Posts")]
+        [TestCase("9 addtopostorder Test1 1 123456 1", Category = "Posts")]
+        [TestCase("9 addtopostorder Test1 1 @!1234567 z", Category = "Posts")]
+        public void AddToPostOrder_WithBadArgs_ShouldReturnErrMsg(string message)
+        {
+            string expectedResult = "Your request was put in the wrong format. Correct format is 9 AddToPostOrder <thread title or alias> <@player> <post order position>";
+
+            if(message.Contains('z'))
+            {
+                expectedResult = $"Your request was put in the wrong format. Correct format is 9 AddToPostOrder <thread title or alias> <@player> <post order position>. And if you add in a non numeric character for position again I will send spiderbots to watch you in your sleep.";
+            }
+
+            string result = Nine.Commands.Commands.ExecCommand("9", message);
+
+            StringAssert.AreEqualIgnoringCase(expectedResult, result);
+        }
+
+        [TestCase("9 addtopostorder Test1 <@!271158490800717824> 1", "<@!271158490800717824> has already been added to the post order.", Category = "Posts")]
+        [TestCase("9 addtopostorder Test1 <@!271158490800712345> 1", "1 has already been added to the post order.", Category = "Posts")]
+        [TestCase("9 addtopostorder Starfall <@!271158490800717824> 1", "There is no thread in the database with the Title or Alias 'Starfall'.", Category = "Posts")]
+        public void AddToPostOrder_WithExistingArgs_ShouldReturnErrMsg(string message, string expectedResult)
+        {
+            string result = Nine.Commands.Commands.ExecCommand("9", message);
+
+            StringAssert.AreEqualIgnoringCase(expectedResult, result);
+        }
+
+        [TestCase("9 addtopostorder Test1 <@!271158490800712345> 99")]
+        public void AddToPostOrder_WithUniqueValues_ShouldReturnSuccess(string message)
+        {
+            string expectedResult = "<@!271158490800712345> has been added to the posting order";
+            string deleteRecord = "DELETE From postorder where ThreadID='1' AND Player='<@!271158490800712345>' AND PostPosition='99'";
+
+            string result = Nine.Commands.Commands.ExecCommand("9", message);
+
+
+            //delete record
+            SqlCommand.ExecuteQuery(deleteRecord, false);
+
+            StringAssert.AreEqualIgnoringCase(expectedResult, result);
+        }
+        #endregion
     }
 }

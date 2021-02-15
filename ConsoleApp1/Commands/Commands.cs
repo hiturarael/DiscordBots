@@ -29,6 +29,7 @@ namespace Nine.Commands
                     response = AddPost(strCommand, content);
                     break;
                 case "updatethread":
+                case "updatepost":
                     response = UpdatePost(strCommand, content);
                     break;
                 case "addtopostorder":
