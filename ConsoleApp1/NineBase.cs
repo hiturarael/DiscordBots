@@ -28,7 +28,7 @@ namespace Nine
             {
                 if (e.Message.Content.ToLower().StartsWith("9"))
                 {
-                    Task<string> task = Task.Run(() => Commands.Commands.ExecCommand(StrCmd, e.Message));
+                    Task<string> task = Task.Run(() => Commands.Commands.ExecCommand(StrCmd, e.Message.Content));
                     task.Wait();
 
                     await e.Message.RespondAsync(task.Result);

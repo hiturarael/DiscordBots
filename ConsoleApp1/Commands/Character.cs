@@ -8,7 +8,7 @@ namespace Nine
 {
     public class Character
     {
-        public static readonly bool testing = true;
+        public static readonly bool testing = false;
 
         public static string WhoPlays(string name)
         {
@@ -36,7 +36,7 @@ namespace Nine
                     {
                         DataRow row = dt.Rows[0];
 
-                        result = $"The character {row["CharName"]} is played by ${row["Player"]} and pilots the {row["Unit"]}";
+                        result = $"The character {row["CharName"]} is played by {row["Player"]} and pilots the {row["Unit"]}.";
                     }
                 }
 

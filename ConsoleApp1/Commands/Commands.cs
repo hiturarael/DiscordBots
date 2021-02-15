@@ -9,12 +9,13 @@ namespace Nine.Commands
 {
     public class Commands
     {
-        public static string ExecCommand(string strCommand, DiscordMessage message)
+        public static string ExecCommand(string strCommand, string message)
         {
-            string response = "";
+            string response;
             string conts = CheckCommandFormat(message);
 
-            string[] content = conts.Split(" ");
+            string[] content = conts.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+
             switch (content[1].ToLower())
             {
                 case "ping":
@@ -41,19 +42,19 @@ namespace Nine.Commands
             return response;
         }
 
-        static string CheckCommandFormat(DiscordMessage message)
+        static string CheckCommandFormat(string message)
         {
             string regex = "9[a-zA-z]";
             string conts;
 
 
-            if (Regex.IsMatch(message.Content, regex))
+            if (Regex.IsMatch(message, regex))
             {
-                conts = message.Content.Insert(1, " ");
+                conts = message.Insert(1, " ");
             }
             else
             {
-                conts = message.Content;
+                conts = message;
             }
 
             return conts;
@@ -87,7 +88,7 @@ namespace Nine.Commands
             string value = "";
             string response;
 
-            if (content.Length > 2)
+            if (content.Length > 4)
             {
                 string url = "";
                 string alias = "";
@@ -126,15 +127,14 @@ namespace Nine.Commands
                     {
                         response = "No url was present in your command.";
                     }
-                }
-                else
+                } else
                 {
-                    response = "One or more fields were empty. Please try again.";
+                    response = $"Your request was put in the wrong format. Correct format is {strCommand} {content[1].ToLower()} <thread title> <url> <alias>";
                 }
             }
             else
             {
-                response = $"Your request was put in the wrong format. Correct format is {strCommand} {content[1].ToLower()} <thread title> <url> <alias>";
+                response = "One or more fields were empty. Please try again.";
             }
 
             return response;
@@ -144,7 +144,7 @@ namespace Nine.Commands
         {
             string response;
 
-            if(content.Length > 2)
+            if(content.Length > 3)
             {
                 string searchTerm = "";
                 string status = "";
@@ -188,6 +188,7 @@ namespace Nine.Commands
                 string title = "";
                 string position = "";
                 string user = "";
+
                 for(int x = 2; x < content.Length; x++)
                 {
                     if(content[x].Contains("@!"))
@@ -225,11 +226,13 @@ namespace Nine.Commands
                     }
                 }
 
-                if (!response.Contains("spider"))
+                if (!response.Contains("spider") && userIDFound)
                 {
                    response =  Posts.AddToPostOrder(title, user, position);
+                } else if(!userIDFound)
+                {
+                    response = $"Your request was put in the wrong format. Correct format is {strCommand} {content[1].ToLower()} <thread title or alias> <@player> <post order position>";
                 }
-
             }
             else
             {
@@ -238,5 +241,6 @@ namespace Nine.Commands
 
             return response;
         }
+
     }
 }

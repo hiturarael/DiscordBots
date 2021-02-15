@@ -23,10 +23,10 @@ namespace Nine.Commands
             string result;
             string table = "threads";
             string query = $"INSERT INTO {table}(Title, Alias, URL, Status) VALUES(@title, @alias, @url, @status)";
-            string aliasQuery = $"SELECT * from {table} WHERE Alias LIKE %{alias}%";
-            string threadQuery = $"SELECT * from {table} WHERE Title LIKE %{threadName}%";
+            string aliasQuery = $"SELECT * from {table} WHERE Alias LIKE '%{alias}%'";
+            string threadQuery = $"SELECT * from {table} WHERE Title LIKE '%{threadName}%'";
 
-            string urlQuery = $"SELECT * from {table} WHERE URL LIKE %{url}%";
+            string urlQuery = $"SELECT * from {table} WHERE URL LIKE '%{url}%'";
 
             string[] parameters = { "@title", "@alias", "@url", "@status" };
             string[] values = { threadName, alias, url, ThreadStatus.Open.ToString() };
@@ -38,29 +38,41 @@ namespace Nine.Commands
             try
             {
                 DataTable dt = SqlCommand.ExecuteQuery(aliasQuery, testing);
-
-                if (dt.Rows.Count < 1)
+                
+                if (dt.Rows.Count >= 1)
                 {
                     DataRow row = dt.Rows[0];
+                    object urlBlob = row["URL"];
+
                     resultAlias = row["Alias"].ToString();
+                    resultURL = Functions.GetUrl((byte[])urlBlob);
+                    resultThread = row["Title"].ToString();
                     errors += 1;
                 }
-
+                 
                 dt = SqlCommand.ExecuteQuery(threadQuery, testing);
 
-                if (dt.Rows.Count < 1)
+                if (dt.Rows.Count >= 1)
                 {
                     DataRow row = dt.Rows[0];
+                    object urlBlob = row["URL"];
+
+                    resultAlias = row["Alias"].ToString();
+                    resultURL = Functions.GetUrl((byte[])urlBlob);
                     resultThread = row["Title"].ToString();
                     errors += 2;
                 }
 
                 dt = SqlCommand.ExecuteQuery(urlQuery, testing);
 
-                if (dt.Rows.Count < 1)
+                if (dt.Rows.Count >= 1)
                 {
                     DataRow row = dt.Rows[0];
-                    resultURL = row["URL"].ToString();
+                    object urlBlob = row["URL"];
+
+                    resultAlias = row["Alias"].ToString();
+                    resultURL = Functions.GetUrl((byte[])urlBlob);
+                    resultThread = row["Title"].ToString();
                     errors += 4;
                 }
 
@@ -70,7 +82,7 @@ namespace Nine.Commands
 
                     dt = SqlCommand.ExecuteQuery(aliasQuery, testing);
 
-                    if (dt.Rows.Count > 1)
+                    if (dt.Rows.Count == 1)
                     {
                         //return confirmation of add
                         result = "The thread has been added to the database.";
@@ -85,12 +97,12 @@ namespace Nine.Commands
                     result = errors switch
                     {
                         1 => $"The alias you are trying to use is already taken for the thread {resultThread} with the url {resultURL}.",
-                        2 => $"The title of the thread you are trying to add is already in the database under the alias {resultAlias} with the url {resultURL}",
-                        3 => $"The alias and title are already in use for url {resultURL}",
+                        2 => $"The title of the thread you are trying to add is already in the database under the alias {resultAlias} with the url {resultURL}.",
+                        3 => $"The alias and title are already in use for url {resultURL}.",
                         4 => $"The url you are trying to use is already taken for the thread {resultThread} with the alias {resultAlias}.",
-                        5 => $"The alias and url are already in use for the thread {resultThread}",
-                        6 => $"The title and url are already in use for the alias {resultAlias}",
-                        7 => $"The title, url, and alias are already in use.",
+                        5 => $"The alias and url are already in use for the thread {resultThread}.",
+                        6 => $"The title and url are already in use for the alias {resultAlias}.",
+                        7 => $"The title, url, and alias are already in my records.",
                         _ => "I do not know how this happened but something went terribly wrong.",
                     };
                 }
@@ -127,10 +139,10 @@ namespace Nine.Commands
 
                     for (int x = 0; x < Enum.GetValues(typeof(ThreadStatus)).Length; x++)
                     {
-                        vals += $"{Enum.GetValues(typeof(ThreadStatus)).GetValue(x)} ";
+                        vals += $"/n{Enum.GetValues(typeof(ThreadStatus)).GetValue(x)}";
                     }
 
-                    result = $"The status you are trying to update with is not valid. Use one of the following: {vals.Trim()}.";
+                    result = $"The status you are trying to update with is not valid. Use one of the following: {vals.Trim()}";
                 }
                 else
                 {
@@ -162,7 +174,13 @@ namespace Nine.Commands
 
                         SqlCommand.ExecuteQuery_Params(updateQuery, parameters, values);
 
-                        result = "I have updated the status of the thread.";
+                        if (result == "")
+                        {
+                            result = "I have updated the status of the thread.";
+                        }
+                    } else
+                    {
+                        result = "There is no thread with that identifier. Please try again.";
                     }
                 }
             }
@@ -178,18 +196,14 @@ namespace Nine.Commands
         {
             string postOrderTable = "postorder";
             string threadTable = "threads";
-
-            int threadNum = 0;
-            string result = "";
-
-
             DataTable dt = QueryThread(threadTable, threadId);
+            string result;
             //query thread exists in the thread table
             if (dt.Rows.Count > 0)
             {
                 DataRow dr = dt.Rows[0];
                 //get idnum
-                threadNum = Convert.ToInt32(dr["ID"]);
+                int threadNum = Convert.ToInt32(dr["ID"]);
 
                 string addPlayerQuery = $"INSERT INTO {postOrderTable}(ThreadID, Player, PostPosition) VALUES(@threadId, @player, @position)";
                 string[] parameters = { "@threadId", "@player", "@position" };
@@ -199,7 +213,7 @@ namespace Nine.Commands
                 if (!PlayerAdded(postOrderTable, player))
                 {
                     //check player post position is not already taken
-                    if(!PositionAdded(postOrderTable, position))
+                    if (!PositionAdded(postOrderTable, position))
                     {
                         //add to post order
                         try
@@ -218,17 +232,20 @@ namespace Nine.Commands
                         catch (Exception ex)
                         {
                             result = ex.Message;
-                        }                        
-                    } else
+                        }
+                    }
+                    else
                     {
                         result = $"{position} has already been added to the post order.";
                     }
                 }
-                else {
+                else
+                {
                     result = $"{player} has already been added to the post order.";
                 }
-                
-            } else
+
+            }
+            else
             {
                 result = $"There is no thread in the database with the Title or Alias '{threadId}'.";
             }
@@ -240,12 +257,8 @@ namespace Nine.Commands
         {
             string threadTitleQuery = $"SELECT * from {table} where Title = '{threadId}'";
             string threadAliasQuery = $"SELECT * from {table} where Alias = '{threadId}'";
-
-            DataTable dt = null;
-
-            dt = SqlCommand.ExecuteQuery(threadTitleQuery, testing);
-
-            if(dt.Rows.Count == 0)
+            DataTable dt = SqlCommand.ExecuteQuery(threadTitleQuery, testing);
+            if (dt.Rows.Count == 0)
             {
                 dt = SqlCommand.ExecuteQuery(threadAliasQuery, testing);
             }

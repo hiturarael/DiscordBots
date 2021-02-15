@@ -12,6 +12,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nine", "ConsoleApp1\Nine.cs
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SERAPHAdmin", "SERAPHAdmin\SERAPHAdmin.csproj", "{6993E190-9A31-4B5D-9AAC-A4B6A44A9746}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nine_Testing", "Nine_Testing\Nine_Testing.csproj", "{0BED7BE6-62B7-4E49-A1BB-C5CBB0E2B49F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,6 +32,10 @@ Global
 		{6993E190-9A31-4B5D-9AAC-A4B6A44A9746}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6993E190-9A31-4B5D-9AAC-A4B6A44A9746}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6993E190-9A31-4B5D-9AAC-A4B6A44A9746}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BED7BE6-62B7-4E49-A1BB-C5CBB0E2B49F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BED7BE6-62B7-4E49-A1BB-C5CBB0E2B49F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BED7BE6-62B7-4E49-A1BB-C5CBB0E2B49F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BED7BE6-62B7-4E49-A1BB-C5CBB0E2B49F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
