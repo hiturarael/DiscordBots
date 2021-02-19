@@ -60,7 +60,7 @@ namespace Nine
                         //WaitForReactionAsync(x => x.Name == ":white_check_mark:" || x.Name == ":negative_squared_cross_mark:", msg, e.Message.Author);
 
                         //(x => x.Author == e.Message.Author && x.Reactions.Count == 1);
-                        CommandContext ctx = msg;
+                        //CommandContext ctx = msg;
 
 
                         if (result.Emoji == ":white_check_mark:")
