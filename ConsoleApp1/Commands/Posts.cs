@@ -235,7 +235,7 @@ namespace Nine.Commands
                 string[] values = { threadNum.ToString(), player, position };
 
                 //check player is not added to list already
-                if (!PlayerAdded(postOrderTable, player, threadNum) && !NonMentionPlayerAdded("players", player))
+                if (!PlayerAdded(postOrderTable, player, threadNum) && NonMentionPlayerAdded("players", maskPlayer))
                 {
                     //check player post position is not already taken
                     if (!PositionAdded(postOrderTable, position,threadNum))
@@ -444,7 +444,7 @@ namespace Nine.Commands
                     if (CooldownExpired(plyr, pingCooldown, threadNum))
                     {
                         SetCooldown(plyr, pingCooldown, threadNum);
-                        response = $"Reminder to post in {threadID}, {dt.Rows[0]["Player"]}";
+                        response = $"Reminder to post in {threadID}, {Player.GetPlayer(plyr, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention)}";
                     } else
                     {
                         response = $"Reminder to post in {threadID}, {plyr}";
@@ -459,7 +459,6 @@ namespace Nine.Commands
             }
             return response;
         }
-
         
         public static string Posted(string threadId, string user)
         {
@@ -481,14 +480,25 @@ namespace Nine.Commands
 
                     string[] arguments = { "@date", "@thread", "@player", "@pos" };
                     string[] values = { DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), threadNum.ToString(), user, postPos };
-                   
+                    string mentionPosters = "";
+
+                    
                     //if user is up, add to database
                     ClearCooldown(user, threadNum);
                     SqlCommand.ExecuteQuery_Params(addPostQuery, arguments, values, testing);
 
                     upNext = QueryNextName(threadNum);
+                    dt = QueryPostOrder(threadNum, postOrderTable);
 
-                    response = $"Thank you for your post, {masked}. You're up, {upNext}";
+                    foreach(DataRow row in dt.Rows)
+                    {
+                        if(row["Player"].ToString() != user)
+                        {
+                            mentionPosters += $"\n{row["Player"]}";
+                        }
+                    }                    
+
+                    response = $"Thank you for your post, {masked}. You're up, {upNext} \n {mentionPosters}";
                 }
                 else
                 {
@@ -700,7 +710,6 @@ namespace Nine.Commands
             }
         }
 
-        //$"DELETE From postorder where ThreadID='{threadNum}' AND Player='{unmasked}'";
         static void ClearCooldown(string user, int threadNum)
         {
             string cooldownQuery = $"SELECT cooldown FROM {pingTable} WHERE ThreadID = {threadNum} AND user = '{user}' ORDER BY cooldown asc";

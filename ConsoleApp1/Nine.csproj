@@ -7,9 +7,9 @@
 
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="2.3.0" />
-    <PackageReference Include="DSharpPlus" Version="3.2.3" />
-    <PackageReference Include="DSharpPlus.CommandsNext" Version="3.2.3" />
-    <PackageReference Include="DSharpPlus.Interactivity" Version="3.2.3" />
+    <PackageReference Include="DSharpPlus" Version="4.0.0-rc2" />
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-rc2" />
+    <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-rc2" />
     <PackageReference Include="MySql.Data" Version="8.0.23" />
     <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
   </ItemGroup>
@@ -37,8 +37,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="liveconfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="localconfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Properties\launchSettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="testconfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

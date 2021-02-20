@@ -347,3 +347,6 @@ ConsoleApp1/Properties/Resources.resx
 ConsoleApp1/Properties/launchSettings.json
 Nine_Testing/Properties/launchSettings.json
 ConsoleApp1/Properties/launchSettings.json
+ConsoleApp1/liveconfig.json
+ConsoleApp1/localconfig.json
+ConsoleApp1/testconfig.json
