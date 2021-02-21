@@ -515,6 +515,35 @@ namespace Nine.Commands
             return response;
         }
 
+        public static string UpdatePostOrder(string thread, List<string> players, bool posted = false)
+        {
+            int x = 1;
+            int threadID = GetThreadID(QueryThread(threadTable, thread), 0);
+            //purge current order
+            ResetPostOrder(thread);
+
+            //purge posted records
+            PurgePostedForThread(threadID);
+
+            //insert new post order
+            foreach(string player in players)
+            {
+                string masked = Player.GetPlayer(player, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker);
+
+                AddToPostOrder(thread, player, x.ToString(), masked);
+
+                x++;
+            }
+
+            //add posted record for #1
+            if (posted)
+            {
+                Posted(thread, players[0]);
+            }
+
+            return "The post order has been updated.";
+        }
+
         #region Support
         public static DataTable QueryNextPosts(int threadNum)
         {
@@ -676,6 +705,15 @@ namespace Nine.Commands
             return SqlCommand.ExecuteQuery(postQuery, testing);
         }
 
+        static void PurgePostedForThread(int threadID)
+        {
+            string postQuery = $"DELETE FROM {postTable} WHERE ThreadID = {threadID}";
+
+            SqlCommand.ExecuteQuery(postQuery, testing);
+
+            ClearCooldown(threadID);
+        }
+
         static void SetCooldown(string user,  DateTime pingTime, int threadNum)
         {
             DateTime cooldownTime = pingTime.AddDays(2);
@@ -720,6 +758,19 @@ namespace Nine.Commands
             if(dt.Rows.Count > 0)
             {
                 SqlCommand.ExecuteQuery(deleteCooldownQuery,testing);
+            }
+        }
+
+        static void ClearCooldown(int threadNum)
+        {
+            string cooldownQuery = $"SELECT cooldown FROM {pingTable} WHERE ThreadID = {threadNum} ORDER BY cooldown asc";
+            string deleteCooldownQuery = $"DELETE FROM {pingTable} WHERE ThreadID = {threadNum}";
+
+            DataTable dt = SqlCommand.ExecuteQuery(cooldownQuery, testing);
+
+            if (dt.Rows.Count > 0)
+            {
+                SqlCommand.ExecuteQuery(deleteCooldownQuery, testing);
             }
         }
         #endregion

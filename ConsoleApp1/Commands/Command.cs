@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
-using Microsoft.VisualBasic;
+using DSharpPlus.Interactivity.Extensions;
 
 namespace Nine.Commands
 {
@@ -241,7 +243,11 @@ namespace Nine.Commands
         [Description("Records that you have posted, sets up for next in order.")]
         public async Task Posted(CommandContext ctx, [Description("Thread name or alias")] string Thread)
         {
-            await ctx.TriggerTypingAsync();
+            var interactivity = ctx.Client.GetInteractivity();
+
+            string[] opts = { "yes", "no" };
+
+            //await ctx.TriggerTypingAsync();
             string response;
 
             if (!string.IsNullOrEmpty(Thread))
@@ -256,8 +262,60 @@ namespace Nine.Commands
             //prompt reply and act accordingly.
 
             await ctx.RespondAsync(response);
+
+            if (response.Contains("You are not up in the roster, has the post order changed?"))
+            {
+                var msg = await interactivity.WaitForMessageAsync(xm => xm.Content.ToLower().Contains("yes") || xm.Content.ToLower().Contains("no"), TimeSpan.FromSeconds(60));
+
+                if (!msg.TimedOut)
+                {
+                    //if (msg.Result.Author.ToString() == ctx.User.Mention.ToString())
+                    //{
+                        int x = 2;
+                        List<string> newOrder = new List<string>();
+
+                        int resp = 1;
+                        string first = Player.GetPlayer(ctx.User.Mention, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker);
+
+                        newOrder.Add(ctx.User.Mention);
+
+                        await ctx.RespondAsync($"{first} will be set to position 1");
+
+                        while (resp != 0)
+                        {
+                            if (msg.Result.Content.ToString() == "0")
+                            {
+                                resp = 0;
+                            }
+                            else
+                            {
+
+                                await ctx.RespondAsync($"Who is in position {x}? Enter 0 to stop adding to the list.");
+
+                                msg = await interactivity.WaitForMessageAsync(xm => xm.Content != "", TimeSpan.FromSeconds(60));
+
+                            string player = Player.GetPlayer(msg.Result.Content.ToString(), Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention);
+
+                                if (player != "0")
+                                {
+                                    newOrder.Add(player);
+                                }
+                                x++;
+                            }
+                        }
+
+                    await ctx.RespondAsync(Posts.UpdatePostOrder(Thread, newOrder, true));
+                    //} 
+                }
+                else
+                {
+                    DiscordEmoji emoji = DiscordEmoji.FromName(ctx.Client, ":shock:");
+
+                    await ctx.RespondAsync($"{emoji} If you're not going to answer when I ask a question then why are you bothering me?");
+                }
+            }
         }
-            
+
         [Command("ResetPostOrder")]
         [Aliases("ResetOrder")]
         [Description("Clears the post order to be re-added")]
