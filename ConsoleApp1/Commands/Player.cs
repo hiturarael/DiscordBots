@@ -1,4 +1,5 @@
 ﻿using DiscordBots.SQL;
+using DSharpPlus.CommandsNext;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,7 +10,7 @@ namespace Nine.Commands
     public class Player
     {
         public static readonly bool testing = false;
-
+        public static readonly string playerTable = "players";
         public enum PlayerStatus
         {
             Active,
@@ -24,10 +25,9 @@ namespace Nine.Commands
 
         public static string AddPlayer(string player, string monicker)
         {
-            string table = "players";
-            string userQuery = $"SELECT * from {table} where Player = '{player}'";
-            string monickerQuery = $"SELECT * from {table} where Monicker LIKE '%{monicker}%'";
-            string addQuery = $"INSERT INTO {table}(Player, Monicker) VALUES(@player, @monicker)";
+            string userQuery = $"SELECT * from {playerTable} where Player = '{player}'";
+            string monickerQuery = $"SELECT * from {playerTable} where Monicker LIKE '%{monicker}%'";
+            string addQuery = $"INSERT INTO {playerTable}(Player, Monicker) VALUES(@player, @monicker)";
 
             string[] parameters = { "@player", "@monicker"};
             string[] values = { player, monicker };
@@ -81,10 +81,11 @@ namespace Nine.Commands
             return response;
         }
 
+        #region Support
         public static bool GetPlayerStatus(string player, PlayerSearch search)
         {
-            string playerCheck = $"Select * from players where Player = '{player}'";
-            string monickerCheck = $"Select * from players where Monicker = '{player}'";
+            string playerCheck = $"Select * from {playerTable} where Player = '{player}'";
+            string monickerCheck = $"Select * from {playerTable} where Monicker = '{player}'";
 
             DataTable dt = null;
             string active = "";
@@ -119,6 +120,8 @@ namespace Nine.Commands
             string playerCheck;
             string monickerCheck;
 
+            player = player.Replace("<@!", "").Replace("<@", "").Replace(">", "");
+
             if(player.Contains("Member") && player.Contains("#"))
             {
                 string[] authorSearch = player.Split(" ");
@@ -126,8 +129,8 @@ namespace Nine.Commands
                 player = $"<@!{authorSearch[1].Replace(";", "").Trim()}>";
             }
 
-            playerCheck = $"Select * from players where Player = '{player}'";
-            monickerCheck = $"Select * from players where Monicker = '{player}'";
+            playerCheck = $"Select * from {playerTable} where Player LIKE '%{player}%'";
+            monickerCheck = $"Select * from {playerTable} where Monicker LIKE '%{player}%'";
 
             DataTable dt = null;
 
@@ -173,8 +176,8 @@ namespace Nine.Commands
                 player = $"<@!{authorSearch[1].Replace(";", "").Trim()}>";
             }
 
-            playerCheck = $"Select * from players where Player = '{player}'";
-            monickerCheck = $"Select * from players where Monicker = '{player}'";
+            playerCheck = $"Select * from {playerTable} where Player = '{player}'";
+            monickerCheck = $"Select * from {playerTable} where Monicker = '{player}'";
 
             DataTable dt = null;
 
@@ -197,5 +200,29 @@ namespace Nine.Commands
 
             return adminStatus;
         }
+
+        public static int GetPlayerID(string playerMention)
+        {
+            string query = $"SELECT ID FROM {playerTable} WHERE Player='{playerMention}'";
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+
+            if(dt.Rows.Count > 0)
+            {
+                return (int)dt.Rows[0]["ID"];
+            } else
+            {
+                return 0;
+            }
+        }
+
+        public static string GetPlayerByID(int ID)
+        {
+            string query = $"SELECT Monicker FROM {playerTable} WHERE ID={ID}";
+            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+
+            return dt.Rows[0]["Monicker"].ToString();
+        }
+        #endregion
     }
 }

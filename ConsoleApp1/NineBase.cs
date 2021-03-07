@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -65,7 +66,7 @@ namespace Nine
             //set up interactivity
             this.Client.UseInteractivity(new InteractivityConfiguration
             {
-                PaginationBehaviour = PaginationBehaviour.Ignore,
+                PaginationBehaviour = PaginationBehaviour.Ignore,                
 
                 Timeout = TimeSpan.FromSeconds(10)
             }) ;
@@ -151,6 +152,36 @@ namespace Nine
                 };
 
                 await e.Context.RespondAsync(embed);
+            }
+
+            if(e.Exception is CommandNotFoundException)
+            {
+                await e.Context.RespondAsync("I have no commands programmed with that name. Please use 9 help to get a list of commands.");
+            }
+
+            if(e.Exception is ArgumentException)
+            {
+                string format = $"9 <{e.Command.Name}";
+
+                foreach(string alias in e.Command.Aliases)
+                {
+                    format = $"{format}|{alias}";
+                }
+
+                format += ">";
+
+                IReadOnlyList<CommandOverload> overloads = e.Command.Overloads;
+
+                foreach(var arg in overloads)
+                {
+                    IReadOnlyList<CommandArgument> x = arg.Arguments;
+                    foreach (var y in x)
+                    {
+                        format = $"{format} \"{y.Name}\"";
+                    }
+
+                }
+                await e.Context.RespondAsync($"Your command was entered in an invalid format. The correct format is: {format}");
             }
         }
     }

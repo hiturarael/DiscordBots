@@ -164,12 +164,15 @@ namespace Nine.Commands
 
                     for (int x = 0; x < Enum.GetValues(typeof(ThreadStatus)).Length; x++)
                     {
-                        vals += $"/n{Enum.GetValues(typeof(ThreadStatus)).GetValue(x)}";
+                        if (status != "Complete")
+                        {
+                            vals += $"/n{Enum.GetValues(typeof(ThreadStatus)).GetValue(x)}";
+                        }
                     }
 
                     result = $"The status you are trying to update with is not valid. Use one of the following: {vals.Trim()}";
                 }
-                else
+                else if (status != "Complete")
                 {
 
                     if (threadId.Contains("https://") || threadId.Contains("srwignition.com"))
@@ -210,6 +213,9 @@ namespace Nine.Commands
                     {
                         result = "There is no thread with that identifier. Please try again.";
                     }
+                } else
+                {
+                    result = "The status complete can only be assigned with the ThreadComplete commands.";
                 }
             }
             catch (Exception ex)
@@ -220,25 +226,25 @@ namespace Nine.Commands
             return result;
         }
 
-        public static string AddToPostOrder(string threadId, string player, string position, string maskPlayer)
+        public static string AddToPostOrder(string threadId, string player, string maskPlayer)
         {
-            DataTable dt = QueryThread(threadTable, threadId);
+            DataTable dt = QueryThread(threadId);
             string result;
             //query thread exists in the thread table
             if (dt.Rows.Count > 0)
             {
-                //get idnum
-                int threadNum = GetThreadID(dt, 0);
-
-                string addPlayerQuery = $"INSERT INTO {postOrderTable}(ThreadID, Player, PostPosition) VALUES(@threadId, @player, @position)";
-                string[] parameters = { "@threadId", "@player", "@position" };
-                string[] values = { threadNum.ToString(), player, position };
-
-                //check player is not added to list already
-                if (!PlayerAdded(postOrderTable, player, threadNum) && NonMentionPlayerAdded("players", maskPlayer))
+                if (IsTakingPosts(threadId))
                 {
-                    //check player post position is not already taken
-                    if (!PositionAdded(postOrderTable, position,threadNum))
+                    //get idnum
+                    int threadNum = GetThreadID(dt);
+                    string position = GetNextOpenPosition(threadNum);
+
+                    string addPlayerQuery = $"INSERT INTO {postOrderTable}(ThreadID, Player, PostPosition) VALUES(@threadId, @player, @position)";
+                    string[] parameters = { "@threadId", "@player", "@position" };
+                    string[] values = { threadNum.ToString(), player, position };
+
+                    //check player is not added to list already
+                    if (!PlayerAdded(postOrderTable, player, threadNum) && NonMentionPlayerAdded("players", maskPlayer))
                     {
                         //add to post order
                         try
@@ -261,14 +267,12 @@ namespace Nine.Commands
                     }
                     else
                     {
-                        result = $"{position} has already been added to the post order.";
+                        result = $"{maskPlayer} has already been added to the post order.";
                     }
-                }
-                else
+                } else
                 {
-                    result = $"{maskPlayer} has already been added to the post order.";
+                    result = $"That thread is flagged as {GetThreadStatus(threadId)}.";
                 }
-
             }
             else
             {
@@ -280,7 +284,7 @@ namespace Nine.Commands
 
         public static string PostOrder(string threadId)
         {
-            DataTable dt = QueryThread(threadTable, threadId);
+            DataTable dt = QueryThread(threadId);
             string result;
 
             if(dt.Rows.Count > 0)
@@ -315,7 +319,7 @@ namespace Nine.Commands
 
         public static string RemoveFromOrder(string threadId, string player)
         {
-            DataTable dt = QueryThread(threadTable, threadId);
+            DataTable dt = QueryThread(threadId);
             string result;
 
             //confirm thread exists
@@ -405,7 +409,7 @@ namespace Nine.Commands
 
         public static string ResetPostOrder(string threadID)
         {
-            DataTable dt = QueryThread(threadTable, threadID);
+            DataTable dt = QueryThread(threadID);
             string result;
 
             if (dt.Rows.Count > 0)
@@ -428,30 +432,38 @@ namespace Nine.Commands
         public static string UpNext(string threadID, bool pingUser)
         {
             string response;
-            DataTable dt = QueryThread(threadTable, threadID);
+            DataTable dt = QueryThread(threadID);
 
             //query thread exists
             if (dt.Rows.Count > 0)
             {
-                int threadNum = GetThreadID(dt, 0);
-
-                string plyr = QueryNextName(threadNum);
-
-                if (pingUser)
+                if (IsTakingPosts(threadID))
                 {
-                    DateTime pingCooldown = DateTime.Now;
+                    int threadNum = GetThreadID(dt);
 
-                    if (CooldownExpired(plyr, pingCooldown, threadNum))
+                    string plyr = QueryNextName(threadNum);
+
+                    if (pingUser)
                     {
-                        SetCooldown(plyr, pingCooldown, threadNum);
-                        response = $"Reminder to post in {threadID}, {Player.GetPlayer(plyr, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention)}";
-                    } else
+                        DateTime pingCooldown = DateTime.Now;
+
+                        if (CooldownExpired(plyr, pingCooldown, threadNum))
+                        {
+                            SetCooldown(plyr, pingCooldown, threadNum);
+                            response = $"Reminder to post in {threadID}, {Player.GetPlayer(plyr, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention)}";
+                        }
+                        else
+                        {
+                            response = $"Reminder to post in {threadID}, {plyr}";
+                        }
+                    }
+                    else
                     {
-                        response = $"Reminder to post in {threadID}, {plyr}";
+                        response = $"Currently up to post in {threadID} is {plyr}";
                     }
                 } else
                 {
-                    response = $"Currently up to post in {threadID} is {plyr}";
+                    response = $"That thread is flagged as {GetThreadStatus(threadID)}.";
                 }
             } else
             {
@@ -460,51 +472,70 @@ namespace Nine.Commands
             return response;
         }
         
-        public static string Posted(string threadId, string user)
+        public static string Posted(string threadId, string user, bool skip = false)
         {
             //check thread exists
             string response;
-            DataTable dt = QueryThread(threadTable, threadId);
+            DataTable dt = QueryThread(threadId);
 
             if (dt.Rows.Count > 0)
             {
-                int threadNum = GetThreadID(dt, 0);
-                string upNext = QueryNextName(threadNum);
-                string masked = Player.GetPlayer(user, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker);
-                string postPos = QueryNextPos(threadNum);
-
-                //check user is up
-                if(masked == upNext)
+                if (IsTakingPosts(threadId))
                 {
-                    string addPostQuery = $"INSERT INTO {postTable}(PostDate, ThreadID, Player, PostPosition) VALUES(@date, @thread, @player, @pos)";
+                    int threadNum = GetThreadID(dt);
+                    string upNext = QueryNextName(threadNum);
+                    string masked = Player.GetPlayer(user, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker);
+                    string postPos = QueryNextPos(threadNum);
 
-                    string[] arguments = { "@date", "@thread", "@player", "@pos" };
-                    string[] values = { DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), threadNum.ToString(), user, postPos };
-                    string mentionPosters = "";
-
-                    
-                    //if user is up, add to database
-                    ClearCooldown(user, threadNum);
-                    SqlCommand.ExecuteQuery_Params(addPostQuery, arguments, values, testing);
-
-                    upNext = QueryNextName(threadNum);
-                    dt = QueryPostOrder(threadNum, postOrderTable);
-
-                    foreach(DataRow row in dt.Rows)
+                    //check user is up
+                    if (masked == upNext)
                     {
-                        if(row["Player"].ToString() != user)
+                        string addPostQuery = $"INSERT INTO {postTable}(PostDate, ThreadID, Player, PostPosition) VALUES(@date, @thread, @player, @pos)";
+
+                        string[] arguments = { "@date", "@thread", "@player", "@pos" };
+                        string[] values = { DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), threadNum.ToString(), user, postPos };
+                        string mentionPosters = "";
+
+
+                        //if user is up, add to database
+                        ClearCooldown(user, threadNum);
+                        SqlCommand.ExecuteQuery_Params(addPostQuery, arguments, values, testing);
+
+                        upNext = QueryNextName(threadNum);
+                        dt = QueryPostOrder(threadNum, postOrderTable);
+
+                        foreach (DataRow row in dt.Rows)
                         {
-                            mentionPosters += $"\n{row["Player"]}";
+                            if (row["Player"].ToString() != user)
+                            {
+                                mentionPosters += $"\n{row["Player"]}";
+                            }
                         }
-                    }                    
 
-                    response = $"Thank you for your post, {masked}. You're up, {upNext} \n {mentionPosters}";
-                }
-                else
+                        if (!skip)
+                        {
+                            response = $"Thank you for your post, {masked}. You're up, {upNext} \n {mentionPosters}";
+                        }
+                        else
+                        {
+                            response = $"Thank you for letting me know, {masked}. You're up, {upNext} \n {mentionPosters}";
+                        }
+                    }
+                    else
+                    {
+                        //if user is not up, respond asking if order changed
+                        if (!skip)
+                        {
+                            response = "You are not up in the roster, has the post order changed?";
+                        }
+                        else
+                        {
+                            response = "No worries, you're not up yet. Please let me know when it's your turn if you still want to skip.";
+                        }
+                    }
+                } else
                 {
-                    //if user is not up, respond asking if order changed
-
-                    response = "You are not up in the roster, has the post order changed?";
+                    response = "The thread's status indicates it is currently not taking posts. Make sure to update the status to Open.";
                 }
             }
             else
@@ -518,7 +549,7 @@ namespace Nine.Commands
         public static string UpdatePostOrder(string thread, List<string> players, bool posted = false)
         {
             int x = 1;
-            int threadID = GetThreadID(QueryThread(threadTable, thread), 0);
+            int threadID = GetThreadID(QueryThread(thread));
             //purge current order
             ResetPostOrder(thread);
 
@@ -530,7 +561,7 @@ namespace Nine.Commands
             {
                 string masked = Player.GetPlayer(player, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker);
 
-                AddToPostOrder(thread, player, x.ToString(), masked);
+                AddToPostOrder(thread, player, masked);
 
                 x++;
             }
@@ -542,6 +573,30 @@ namespace Nine.Commands
             }
 
             return "The post order has been updated.";
+        }
+
+        public static string ThreadComplete(string thread)
+        {
+            int threadNum = GetThreadID(thread);
+            
+            if (threadNum != 0)
+            {
+                if (GetThreadStatus(thread) != ThreadStatus.Complete.ToString())
+                {
+                    PurgePostedForThread(threadNum);
+                    UpdateThread(thread, "Complete");
+                    ClearCooldown(threadNum);
+                    ResetPostOrder(thread);
+
+                    return "Congratulations on completing the thread! I have completed the necessary tasks to close it out on my end.";
+                } else
+                {
+                    return "That thread's already marked complete.";
+                }
+            } else
+            {
+                return "I could not find a record of a thread with that specification.";
+            }
         }
 
         #region Support
@@ -595,6 +650,7 @@ namespace Nine.Commands
 
            return QueryPostOrderPosition(postOrderTable, threadNum, pos);
         }
+
         public static string QueryNextName(int threadNum)
         {
             DataTable dt = QueryNextPosts(threadNum);
@@ -609,10 +665,10 @@ namespace Nine.Commands
             return dt.Rows[0]["PostPosition"].ToString();
         }
 
-        static DataTable QueryThread(string table, string threadId)
+        static DataTable QueryThread(string threadId)
         {
-            string threadTitleQuery = $"SELECT * from {table} where Title = '{threadId}'";
-            string threadAliasQuery = $"SELECT * from {table} where Alias = '{threadId}'";
+            string threadTitleQuery = $"SELECT * from {threadTable} where Title = '{threadId}'";
+            string threadAliasQuery = $"SELECT * from {threadTable} where Alias = '{threadId}'";
             DataTable dt = SqlCommand.ExecuteQuery(threadTitleQuery, testing);
             if (dt.Rows.Count == 0)
             {
@@ -622,9 +678,22 @@ namespace Nine.Commands
             return dt;
         }
 
-        static int GetThreadID(DataTable dt, int rowNum)
+        static int GetThreadID(string thread)
         {
-            DataRow row = dt.Rows[rowNum];
+            DataTable dt = QueryThread(thread);
+
+            if (dt.Rows.Count > 0)
+            {
+                return GetThreadID(dt);
+            } else
+            {
+                return 0;
+            }
+        }
+
+        static int GetThreadID(DataTable dt)
+        {
+            DataRow row = dt.Rows[0];
 
             return Convert.ToInt32(row["ID"]);
         }
@@ -679,7 +748,7 @@ namespace Nine.Commands
 
         static DataTable QueryPostOrder(DataTable dt, string postOrderTable)
         {
-            int threadNum = GetThreadID(dt, 0);
+            int threadNum = GetThreadID(dt);
             return QueryPostOrder(threadNum, postOrderTable);
         }
 
@@ -771,6 +840,76 @@ namespace Nine.Commands
             if (dt.Rows.Count > 0)
             {
                 SqlCommand.ExecuteQuery(deleteCooldownQuery, testing);
+            }
+        }
+
+        static string GetNextOpenPosition(int threadID)
+        {
+            string postQuery = $"SELECT * FROM {postOrderTable} where ThreadID ='{threadID}'";
+
+            DataTable dt = SqlCommand.ExecuteQuery(postQuery, testing);
+
+            string position;
+
+            if(dt.Rows.Count > 0)
+            {
+                position = $"{dt.Rows.Count + 1}";
+            } else
+            {
+                position = "1";
+            }
+
+            return position;
+        }
+
+        static bool IsTakingPosts(string thread)
+        {
+            DataTable dt = QueryThread(thread);
+
+            if(dt.Rows.Count > 0)
+            {
+                DataRow dataRow = dt.Rows[0];
+                string status = dataRow["Status"].ToString();
+
+               if(!Enum.IsDefined(typeof(ThreadStatus),status))
+               {
+                    return false;
+               }
+                //ThreadStatus status = (ThreadStatus)dataRow["Status"].ToString();
+
+
+                if(status == ThreadStatus.Open.ToString())
+                {
+                    return true;
+                } else
+                {
+                    return false;
+                }
+            } else
+            {
+                return false;
+            }
+        }
+
+        static string GetThreadStatus(string thread)
+        {
+            DataTable dt = QueryThread(thread);
+
+            if (dt.Rows.Count > 0)
+            {
+                DataRow dataRow = dt.Rows[0];
+                string status = dataRow["Status"].ToString();
+
+                if(Enum.IsDefined(typeof(ThreadStatus), status))
+                {
+                    return status;
+                } else
+                {
+                    return "";
+                }                
+            } else
+            {
+                return "";
             }
         }
         #endregion
