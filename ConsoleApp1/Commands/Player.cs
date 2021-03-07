@@ -203,7 +203,8 @@ namespace Nine.Commands
 
         public static int GetPlayerID(string playerMention)
         {
-            string query = $"SELECT ID FROM {playerTable} WHERE Player='{playerMention}'";
+            playerMention = playerMention.Replace("<@!", "").Replace("<@", "").Replace(">", "");
+            string query = $"SELECT ID FROM {playerTable} WHERE Player LIKE'%{playerMention}%'";
 
             DataTable dt = SqlCommand.ExecuteQuery(query, testing);
 

@@ -82,13 +82,13 @@ namespace Nine.Commands
 
         public static int GetFactionID(string Faction)
         {
-            string query = $"SELECT ID FROM {factionTable} WHERE Faction='{Faction}'";
+            string query = $"SELECT FactionID FROM {factionTable} WHERE Faction='{Faction}'";
 
             DataTable dt = SqlCommand.ExecuteQuery(query, testing);
 
             if (dt.Rows.Count > 0)
             {
-                return (int)dt.Rows[0]["ID"];
+                return (int)dt.Rows[0]["FactionID"];
             }
             else
             {

@@ -483,6 +483,9 @@ namespace Nine.Commands
             {
                 await msg.RespondAsync("Understood. Terminating command.");
                 return;
+            } else if (info.Errored)
+            {
+                return;
             }
 
             info = await Characters.SetLastName(msg, interactivity, info);
@@ -493,6 +496,10 @@ namespace Nine.Commands
             } else if (info.Quit)
             {
                 await msg.RespondAsync("Understood. Terminating command.");
+                return;
+            }
+            else if (info.Errored)
+            {
                 return;
             }
 
@@ -506,15 +513,23 @@ namespace Nine.Commands
                 await msg.RespondAsync("Understood. Terminating command.");
                 return;
             }
+            else if (info.Errored)
+            {
+                return;
+            }
 
             info = await Characters.SetWeapon(msg, interactivity, info);
 
             if (!info.Errored && !info.Quit)
             {
-               await msg.RespondAsync("What is the character's faction? If they are not in a faction please enter 'Independant'.");
+               await msg.RespondAsync("What is the character's faction? If they are not in a faction please enter 'Independent'.");
             } else if (info.Quit)
             {
                 await msg.RespondAsync("Understood. Terminating command.");
+                return;
+            }
+            else if (info.Errored)
+            {
                 return;
             }
 
@@ -528,6 +543,10 @@ namespace Nine.Commands
                 await msg.RespondAsync("Understood. Terminating command.");
                 return;
             }
+            else if (info.Errored)
+            {
+                return;
+            }
 
             info = await Characters.SetURL(msg, interactivity, info);
 
@@ -537,6 +556,10 @@ namespace Nine.Commands
             } else if (info.Quit)
             {
                 await msg.RespondAsync("Understood. Terminating command.");
+                return;
+            }
+            else if (info.Errored)
+            {
                 return;
             }
 
@@ -558,6 +581,14 @@ namespace Nine.Commands
                 }
 
                 info = await Characters.CorrectInfo(msg, interactivity, info);
+
+                if(!info.Correct)
+                {
+                    info = await Characters.GetCorrectInfo(msg, interactivity, info);
+                } else
+                {
+                    info.Relist = false;
+                }
 
                 while (info.Relist)
                 {
@@ -582,9 +613,14 @@ namespace Nine.Commands
 
             if(!info.Errored && !info.Quit)
             {
-                Characters.AddCharacter(info, msg.Author.Mention);
+                Characters.AddCharacter(info, ctx.User.Mention);
 
                 await msg.RespondAsync($"Thank you, {info.FirstName} {info.LastName} has been added to the records.");
+            }
+            else if (info.Errored)
+            {
+                await msg.RespondAsync("$An error occured, please try again later.");
+                return;
             }
         }
     }

@@ -61,7 +61,7 @@ namespace Nine
             return result;
         }
 
-        public static string AddCharacter(CharInfo newCharacter, string player)
+        public static void AddCharacter(CharInfo newCharacter, string player)
         {
             int playerID = Player.GetPlayerID(player);
             int unitID = Units.GetUnitID(newCharacter.Unit);
@@ -73,20 +73,16 @@ namespace Nine
             string[] Values = { playerID.ToString(), newCharacter.FirstName, newCharacter.LastName, newCharacter.Gender, unitID.ToString(), factionID.ToString(), newCharacter.Url, newCharacter.Blurb };
 
             SqlCommand.ExecuteQuery_Params(query, Parameters, Values, testing);
-
-            //SqlCommand.ExecuteQuery();
-
-            return "";
         }
 
         public static string PlayerChars(string Player)
         {
-
+            return "";
         }
 
         public static async Task<CharInfo> SetFirstName(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
         {
-            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What is the character's first name"), TimeSpan.FromSeconds(60));
+            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What is the character's first name") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
 
             if (!rsp.TimedOut)
             {
@@ -120,11 +116,11 @@ namespace Nine
 
         public static async Task<CharInfo> SetLastName(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
         {
-            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What is the character's last name?"), TimeSpan.FromSeconds(60));
+            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What is the character's last name?") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
 
             if (!rsp.TimedOut)
             {
-                info = LastName(info, rsp.Result.Content);
+                info = await Task.Run(() =>LastName(info, rsp.Result.Content));
 
                 if(info.Errored)
                 { 
@@ -163,7 +159,7 @@ namespace Nine
 
         public static async Task<CharInfo> SetGender(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
         {
-            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What is the character's gender?"), TimeSpan.FromSeconds(60));
+            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What is the character's gender?") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
 
             if (!rsp.TimedOut)
             {
@@ -195,7 +191,7 @@ namespace Nine
 
         public static async Task<CharInfo> SetWeapon(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
         {
-            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What is the character's assigned Weapon?"), TimeSpan.FromSeconds(60));
+            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What is the character's assigned Weapon?") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
 
             if (!rsp.TimedOut)
             {
@@ -275,7 +271,7 @@ namespace Nine
 
         public static async Task<CharInfo> SetFaction(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
         {
-            var rsp = await interactivity.WaitForMessageAsync(xm => xm.Content.Length > 0, TimeSpan.FromSeconds(60));
+            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What is the character's faction?") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
 
             if (!rsp.TimedOut)
             {
@@ -318,11 +314,11 @@ namespace Nine
 
         public static async Task<CharInfo> SetURL(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
         {
-            var rsp = await interactivity.WaitForMessageAsync(xm => xm.Content.Length > 0, TimeSpan.FromSeconds(60));
+            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What is the URL of the character's profile?") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
 
             if (!rsp.TimedOut)
             {
-                URL(info, rsp.Result.Content);
+                info = await URL(info, rsp.Result.Content);
 
                 if(info.Errored)
                 {
@@ -338,7 +334,7 @@ namespace Nine
             return info;
         }
 
-        public static CharInfo URL(CharInfo info, string msg)
+        public static async Task<CharInfo> URL(CharInfo info, string msg)
         {
             if (msg.ToLower() == "quit")
             {
@@ -346,7 +342,8 @@ namespace Nine
             }
             else
             {
-                bool used = URLInUse(msg);
+                bool used = false;
+                    used = await Task.Run(()=> URLInUse(msg));
 
                 if (used)
                 {
@@ -368,7 +365,7 @@ namespace Nine
 
         public static async Task<CharInfo> SetBlurb(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
         {
-            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Is there a description for them you'd like"), TimeSpan.FromSeconds(60));
+            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Is there a description for them you'd like") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
 
             if (!rsp.TimedOut)
             {
@@ -384,7 +381,7 @@ namespace Nine
 
         public static async Task<CharInfo> CorrectInfo(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
         {
-            var rsp = await interactivity.WaitForMessageAsync(xm => xm.Content.ToLower().Contains("yes") || xm.Content.ToLower().Contains("no"), TimeSpan.FromSeconds(60));
+            var rsp = await interactivity.WaitForMessageAsync(xm => xm.Content.ToLower().Contains("yes") || xm.Content.ToLower().Contains("no") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
 
             if (!rsp.TimedOut)
             {
@@ -407,37 +404,44 @@ namespace Nine
 
         public static async Task<CharInfo> GetCorrectInfo(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
         {
-            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What do you need to edit?"), TimeSpan.FromSeconds(60));
+            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What do you need to edit?") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
 
             if (!rsp.TimedOut)
             {
                 switch(rsp.Result.Content.ToLower())
                 {
                     case "first name":
+                        await msg.RespondAsync("What is the character's First Name?");
                         info = await SetFirstName(msg, interactivity, info);
                         info.Relist = false;
                         break;
                     case "last name":
+                        await msg.RespondAsync("What is the character's Last Name?");
                         info = await SetLastName(msg, interactivity, info);
                         info.Relist = false;
                         break;
                     case "gender":
+                        await msg.RespondAsync("What is the character's Gender?");
                         info = await SetGender(msg, interactivity, info);
                         info.Relist = false;
                         break;
                     case "weapon":
+                        await msg.RespondAsync("What is the character's weapon?");
                         info = await SetWeapon(msg, interactivity, info);
                         info.Relist = false;
                         break;
                     case "faction":
+                        await msg.RespondAsync("What is the character's faction? If they are not in a faction please enter 'Independent'.");
                         info = await SetFaction(msg, interactivity, info);
                         info.Relist = false;
                         break;
                     case "url":
+                        await msg.RespondAsync("What is the character's profile url?");
                         info = await SetURL(msg, interactivity, info);
                         info.Relist = false;
                         break;
                     case "blurb":
+                        await msg.RespondAsync("Is there a description for them you'd like to use when people query them? If yes, enter that blurb. If no, enter no.");
                         info = await SetBlurb(msg, interactivity, info);
                         info.Relist = false;
                         break;

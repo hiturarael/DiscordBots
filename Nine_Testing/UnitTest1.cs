@@ -409,12 +409,12 @@ namespace Nine_Testing
         [TestCase("https://srwignition.com/index.php?threads/sign-up-sheet.3/")]
         [TestCase("https://srwignition.com/index.php?threads/rai-sol.393/")]
         [Category("Character")]
-        public void SetURL_Should_SetVariables(string msg)
+        public async Task SetURL_Should_SetVariablesAsync(string msg)
         {
             bool correctSetVal = true;
             CharInfo info = new CharInfo();
 
-            info = Characters.URL(info, msg);
+            info = await Characters.URL(info, msg);
 
             if(msg.Contains("rai-sol"))
             {
@@ -463,14 +463,14 @@ namespace Nine_Testing
         #endregion
 
         #region Update Unit
-        [TestCase("TestUnit", "Sess", Units.UnitStatus.Reserved)]
-        [TestCase("TestUnit", "Sess", Units.UnitStatus.Reserved, "Tyr")]
-        [TestCase("TestUnit", "Sess", Units.UnitStatus.Taken)]
-        [TestCase("TestUnit", "Sess", Units.UnitStatus.Open)]
-        [TestCase("TotalFake", "Sess", Units.UnitStatus.Open)]
+        [TestCase("TestUnit", Units.UnitStatus.Reserved)]
+        [TestCase("TestUnit", Units.UnitStatus.Reserved, "Tyr")]
+        [TestCase("TestUnit", Units.UnitStatus.Taken)]
+        [TestCase("TestUnit", Units.UnitStatus.Open)]
+        [TestCase("TotalFake", Units.UnitStatus.Open)]
         [Category("Units")]
 
-        public void UpdateUnit_Should_ReturnExpectedResult(string Unit, string AddedBy, Units.UnitStatus Status, string ReservedFor = "")
+        public void UpdateUnit_Should_ReturnExpectedResult(string Unit, Units.UnitStatus Status, string ReservedFor = "")
         {
             string result = Units.UpdateUnitStatus(Unit, Status, ReservedFor);
             string expectedResult= "";
@@ -498,7 +498,7 @@ namespace Nine_Testing
         {
             string result = Factions.Faction(Faction);
 
-            string expectedResult = "";
+            string expectedResult;
 
             if (Faction == "Independent")
             {
@@ -521,7 +521,7 @@ namespace Nine_Testing
         public void AddFaction_Should_ReturnExpectedResults(string Faction, string First, string Last, string URL)
         {
             string result = Factions.AddFaction(Faction, First, Last, URL);
-            string expectedResult = "";
+            string expectedResult;
 
             if(Faction == "Independent")
             {
@@ -543,7 +543,7 @@ namespace Nine_Testing
         {
             string result = Dictionary.Definition(Term);
 
-            string expectedResult = "";
+            string expectedResult;
 
             if(Term == "Test Term")
             {
