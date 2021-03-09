@@ -21,6 +21,7 @@ namespace Nine
         public string Faction { get; set; }
         public string Url { get; set; }
         public string Blurb { get; set; }
+        public string Player { get; set; }
         public bool Errored { get; set; }
         public bool Quit { get; set; }
         public bool Correct { get; set; }
@@ -48,9 +49,60 @@ namespace Nine
                 else
                 {
                     DataRow row = dt.Rows[0];
-                    string player = Player.GetPlayerByID(Convert.ToInt32(row["Player"]));
+                    string player = Player.GetPlayerByID(Convert.ToInt32(row["PlayerID"]));
 
                     result = $"{player} plays {firstname} {lastname}";
+                }
+            }
+            catch(Exception ex)
+            {
+                result = "I'm sorry, something went wrong with the query.";
+            }
+
+            return result;
+        }
+
+        public static void AddCharacter(CharInfo newCharacter)
+        {
+            int unitID = Units.GetUnitID(newCharacter.Unit);
+            int factionID = Factions.GetFactionID(newCharacter.Faction);
+
+            string query = $"INSERT INTO {charTable}(PlayerID, FirstName, LastName,Gender,UnitID,FactionID,URL,Blurb) VALUES(@PlayerID, @FirstName, @LastName, @Gender, @UnitID, @FactionID, @URL, @Blurb)";
+
+            string[] Parameters = { "@PlayerID", "@FirstName", "@LastName", "@Gender", "@UnitID", "@FactionID", "@URL", "@Blurb" };
+            
+            string[] Values = { Player.GetPlayerID(newCharacter.Player).ToString(), newCharacter.FirstName, newCharacter.LastName, newCharacter.Gender, unitID.ToString(), factionID.ToString(), newCharacter.Url, newCharacter.Blurb };
+
+            SqlCommand.ExecuteQuery_Params(query, Parameters, Values, testing);
+
+            Units.UpdateUnitStatus(newCharacter.Unit, Units.UnitStatus.Taken, newCharacter.Player);
+        }
+
+        public static string PlayerChars(string player)
+        {
+            if(!player.Contains("<@"))
+            {
+                player = Player.GetPlayer(player, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention);
+            }
+            string query = $"SELECT FirstName, LastName FROM {charTable} WHERE PlayerID={Player.GetPlayerID(player)}";
+
+            string result;
+
+            try
+            {
+                DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+
+                if (dt.Rows.Count == 0)
+                {
+                    result = "I'm sorry, there were no records with that name.";
+                }
+                else
+                {
+                    result = $"{player} plays the following characters:\n";
+                   foreach(DataRow row in dt.Rows)
+                    {
+                        result += $"\n\t{row["FirstName"]} {row["LastName"]}";
+                    }
                 }
             }
             catch
@@ -59,25 +111,6 @@ namespace Nine
             }
 
             return result;
-        }
-
-        public static void AddCharacter(CharInfo newCharacter, string player)
-        {
-            int playerID = Player.GetPlayerID(player);
-            int unitID = Units.GetUnitID(newCharacter.Unit);
-            int factionID = Factions.GetFactionID(newCharacter.Faction);
-
-            string query = $"INSERT INTO {charTable}(PlayerID, FirstName, LastName,Gender,UnitID,FactionID,URL,Blurb) VALUES(@PlayerID, @FirstName, @LastName, @Gender, @UnitID, @FactionID, @URL, @Blurb)";
-
-            string[] Parameters = { "@PlayerID", "@FirstName", "@LastName", "@Gender", "@UnitID", "@FactionID", "@URL", "@Blurb" };
-            string[] Values = { playerID.ToString(), newCharacter.FirstName, newCharacter.LastName, newCharacter.Gender, unitID.ToString(), factionID.ToString(), newCharacter.Url, newCharacter.Blurb };
-
-            SqlCommand.ExecuteQuery_Params(query, Parameters, Values, testing);
-        }
-
-        public static string PlayerChars(string Player)
-        {
-            return "";
         }
 
         public static async Task<CharInfo> SetFirstName(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
@@ -144,7 +177,14 @@ namespace Nine
             }
             else
             {
-                info.LastName = msg;
+                if (msg == "\"\"" || msg == "none")
+                {
+                    info.LastName = "";
+                }
+                else
+                {
+                    info.LastName = msg;
+                }
 
                 bool exists = CharExists(info.FirstName, info.LastName);
 
@@ -195,7 +235,7 @@ namespace Nine
 
             if (!rsp.TimedOut)
             {
-                info = Unit(info, rsp.Result.Content, Player.GetPlayer(msg.Author.Mention, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker));
+                info = Unit(info, rsp.Result.Content, info.Player);
 
                 if(info.Errored)
                 {
@@ -235,8 +275,7 @@ namespace Nine
                             {
                                 //clear reserved
                                 //fill assigned to
-                                Units.SetAssigneeFromReserved(msg, rsvd);                        
-
+                                Units.SetAssigneeFromReserved(msg, rsvd);                       
                                 //assign info.unit
                                 info.Unit = msg;
                             } else
@@ -245,7 +284,7 @@ namespace Nine
                             }
                             break;
                         case Units.UnitStatus.Taken:
-                            if (Units.GetAssignee(msg) == rsvd)
+                            if (Player.GetPlayer(Units.GetAssignee(msg), Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention) == rsvd)
                             {
                                 //assign info.unit
                                 info.Unit = msg;
@@ -379,6 +418,41 @@ namespace Nine
             return info;
         }
 
+        public static async Task<CharInfo> SetPlayer(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
+        {
+            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Is this character yours or someone else's?") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
+
+            if(!rsp.TimedOut)
+            {
+                if (rsp.Result.Content.ToLower().ToString() == "mine")
+                {
+                    info.Player = rsp.Result.Author.Mention;
+
+                    if(info.Player.Contains("<@") && !info.Player.Contains("<@!"))
+                    {
+                        info.Player = info.Player.Replace("<@", "<@!");
+                    }
+                }
+                else
+                {
+                    if (rsp.Result.Content.Contains("<@") || rsp.Result.Content.Contains("<@!"))
+                    {
+                        info.Errored = true;
+                    }
+                    else
+                    {
+                        info.Player = Player.GetPlayer(rsp.Result.Content, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention);
+                    }
+                }
+            }
+            else
+            {
+                info.Errored = true;
+                await msg.RespondAsync("I see you're busy now. Try again later then.");
+            }
+            return info;
+        }
+
         public static async Task<CharInfo> CorrectInfo(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
         {
             var rsp = await interactivity.WaitForMessageAsync(xm => xm.Content.ToLower().Contains("yes") || xm.Content.ToLower().Contains("no") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
@@ -410,6 +484,11 @@ namespace Nine
             {
                 switch(rsp.Result.Content.ToLower())
                 {
+                    case "player":                        
+                await msg.RespondAsync("Is this character yours or someone else's? If yours, enter 'mine'. If someone else's please use their monicker. Mention functionality is not enabled for this command and will result in an error.");
+                        info = await Characters.SetPlayer(msg, interactivity, info);
+                        info.Relist = false;
+                        break;
                     case "first name":
                         await msg.RespondAsync("What is the character's First Name?");
                         info = await SetFirstName(msg, interactivity, info);

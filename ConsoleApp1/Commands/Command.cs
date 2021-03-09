@@ -13,6 +13,7 @@ namespace Nine.Commands
 {
     public class BaseCommand : BaseCommandModule
     {
+        #region Basic
         [Command("ping")]
         [Description("Ping command, get snark then response time.")]
         [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
@@ -34,6 +35,9 @@ namespace Nine.Commands
             }
         }
 
+        #endregion
+
+        #region posts
         [Command("PostOrder")]
         [Description("Obtain the current post order for the specified thread.")]
         public async Task PostOrder(CommandContext ctx, [Description("Thread Title or Alias")] string thread)
@@ -64,7 +68,8 @@ namespace Nine.Commands
             {
                 await ctx.RespondAsync("Yeah, no. This is not a DM command. Try again in the correct channels.");
                 return;
-            } else
+            }
+            else
             {
                 await ctx.RespondAsync(Posts.UpNext(thread, true));
             }
@@ -83,15 +88,17 @@ namespace Nine.Commands
                 if (!URL.Contains("#post-"))
                 {
                     response = Posts.AddThread(Title, URL, Alias);
-                } else
+                }
+                else
                 {
                     response = "The URL cannot be linked to an individual post. Try again meatbag.";
                 }
-            } else
+            }
+            else
             {
                 DiscordEmoji emoji = DiscordEmoji.FromName(ctx.Client, ":no:");
                 response = $"{emoji} The URL must be an actual url linking to Ignition.";
-            }            
+            }
 
             await ctx.RespondAsync(response);
         }
@@ -112,26 +119,29 @@ namespace Nine.Commands
         public async Task AddToPostOrder(CommandContext ctx, [Description("Thread Title or Alias")] string Thread, [Description("User added to order By Monicker or @")] string User)
         {
             await ctx.TriggerTypingAsync();
-            string response;            
-                
+            string response;
+
             string Mask;
 
             if (ctx.Channel.IsPrivate && User.Contains("@!"))
             {
                 await ctx.RespondAsync("Yeah, no. This is not a DM command when you use a mention. Try again in the correct channels.");
                 return;
-            } else { 
-
-            if (User.Contains("@!"))
-            {
-                Mask = Player.GetPlayer(User, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker);
-            } else
-            {
-                Mask = User;
-                User = Player.GetPlayer(User, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention);
             }
+            else
+            {
 
-            response = Posts.AddToPostOrder(Thread, User, Mask);
+                if (User.Contains("@!"))
+                {
+                    Mask = Player.GetPlayer(User, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker);
+                }
+                else
+                {
+                    Mask = User;
+                    User = Player.GetPlayer(User, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention);
+                }
+
+                response = Posts.AddToPostOrder(Thread, User, Mask);
             }
 
             await ctx.RespondAsync(response);
@@ -147,24 +157,6 @@ namespace Nine.Commands
             await ctx.RespondAsync(Posts.RemoveFromOrder(Thread, Player));
         }
 
-        [Command("AddPlayer")]
-        [Description("Add a player to the database")]
-        public async Task AddPlayer(CommandContext ctx, [Description("Player Mention")] string Mention, [Description("Player Nickname")]string Monicker)
-        {
-            await ctx.TriggerTypingAsync();
-
-            await ctx.RespondAsync(Player.AddPlayer(Mention, Monicker));
-        }
-
-        [Command("WhoPlays")]
-        [Description("Alerts user to who plays a character")]
-        public async Task WhoPlays(CommandContext ctx, [Description("Character Name")] string FirstName, string LastName)
-        {
-            await ctx.TriggerTypingAsync();
-
-            await ctx.RespondAsync(Characters.WhoPlays(FirstName, LastName));
-        }
-
         [Command("Posted")]
         [Aliases("Post", "Skip")]
         [Description("Records that you have posted, sets up for next in order.")]
@@ -174,12 +166,12 @@ namespace Nine.Commands
             string response;
             bool skip = false;
 
-            if(ctx.Message.Content.ToLower().Contains("9 skip") || ctx.Message.Content.ToLower().Contains("9skip"))
+            if (ctx.Message.Content.ToLower().Contains("9 skip") || ctx.Message.Content.ToLower().Contains("9skip"))
             {
                 skip = true;
             }
 
-            response = Posts.Posted(Thread, ctx.User.Mention, skip);            
+            response = Posts.Posted(Thread, ctx.User.Mention, skip);
 
             //prompt reply and act accordingly.
 
@@ -228,7 +220,8 @@ namespace Nine.Commands
                         }
 
                         await ctx.RespondAsync(Posts.UpdatePostOrder(Thread, newOrder, true));
-                    } else
+                    }
+                    else
                     {
                         await ctx.RespondAsync("Understood. The list will not be changed.");
                     }
@@ -264,14 +257,45 @@ namespace Nine.Commands
             await ctx.RespondAsync(Posts.ThreadComplete(Thread));
         }
 
+        #endregion
+
+        #region Player
+        [Command("AddPlayer")]
+        [Description("Add a player to the database")]
+        public async Task AddPlayer(CommandContext ctx, [Description("Player Mention")] string Mention, [Description("Player Nickname")] string Monicker)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Player.AddPlayer(Mention, Monicker));
+        }
+
+        [Command("WhoPlays")]
+        [Description("Alerts user to who plays a character")]
+        public async Task WhoPlays(CommandContext ctx, [Description("Character Name")] string FirstName, string LastName)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Characters.WhoPlays(FirstName, LastName));
+        }
+        #endregion
+
+        #region Weapons
         [Command("AddUnit")]
         [Aliases("AddWeapon")]
         [Description("Add an open unit to the database")]
         public async Task AddOpenUnit(CommandContext ctx, [Description("Unit Name")] string Unit, [Description("Is the unit mass produced? (Yes/No)")] string MassProduced = "No")
         {
+            string user = "";
+
+            if (!ctx.User.Mention.Contains("<@!") && ctx.User.Mention.Contains("<@"))
+            {
+                user = ctx.User.Mention.Replace("<@", "<@!");
+            }
+
+
             await ctx.TriggerTypingAsync();
 
-            await ctx.RespondAsync(Units.AddUnit(Unit, Player.GetPlayer(ctx.User.Mention,Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker), Units.UnitStatus.Open,"",MassProduced));
+            await ctx.RespondAsync(Units.AddUnit(Unit, user, Units.UnitStatus.Open, "", MassProduced));
         }
 
         [Command("AddBannedUnit")]
@@ -280,21 +304,34 @@ namespace Nine.Commands
         [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
         public async Task AddBannedUnit(CommandContext ctx, [Description("Unit Name")] string Unit, [Description("Is the unit mass produced? (Yes/No)")] string MassProduced = "No")
         {
+            string user = "";
+
+            if (!ctx.User.Mention.Contains("<@!") && ctx.User.Mention.Contains("<@"))
+            {
+                user = ctx.User.Mention.Replace("<@", "<@!");
+            }
+
+
             await ctx.TriggerTypingAsync();
 
-            await ctx.RespondAsync(Units.AddUnit(Unit, Player.GetPlayer(ctx.User.Mention, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker), Units.UnitStatus.Banned,"", MassProduced));
+            await ctx.RespondAsync(Units.AddUnit(Unit, user, Units.UnitStatus.Banned, "", MassProduced));
         }
 
         [Command("AddTakenUnit")]
         [Aliases("AddTakenWeapon", "AddTaken")]
         [Description("Add an assigned unit to the database")]
-        public async Task AddTakenUnit(CommandContext ctx, [Description("Unit Name")] string Unit, [Description("Assigns the unit to a player, who can later assign the unit to a character.")]string AssignedPlayer)
+        public async Task AddTakenUnit(CommandContext ctx, [Description("Unit Name")] string Unit, [Description("Assigns the unit to a player, who can later assign the unit to a character.")] string AssignedPlayer)
         {
             await ctx.TriggerTypingAsync();
 
-            string user = ctx.User.Mention.Replace("<@!", "").Replace("<@", "").Replace(">", "");
+            string user ="";
 
-            await ctx.RespondAsync(Units.AddUnit(Unit, Player.GetPlayer(user, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker), Units.UnitStatus.Taken,AssignedPlayer));
+            if(!ctx.User.Mention.Contains("<@!") && ctx.User.Mention.Contains("<@"))
+            {
+                user = ctx.User.Mention.Replace("<@", "<@!");
+            }
+
+            await ctx.RespondAsync(Units.AddUnit(Unit, user, Units.UnitStatus.Taken, AssignedPlayer));
         }
 
         [Command("AddReservedUnit")]
@@ -302,9 +339,16 @@ namespace Nine.Commands
         [Description("Add a unit to the database and reserve it for specified player")]
         public async Task AddReservedUnit(CommandContext ctx, [Description("Unit Name")] string Unit, [Description("Monicker of who it is reserved for.")] string ReservedFor)
         {
+            string user = "";
+
+            if (!ctx.User.Mention.Contains("<@!") && ctx.User.Mention.Contains("<@"))
+            {
+                user = ctx.User.Mention.Replace("<@", "<@!");
+            }
+
             await ctx.TriggerTypingAsync();
 
-            await ctx.RespondAsync(Units.AddUnit(Unit, Player.GetPlayer(ctx.User.Mention, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker), Units.UnitStatus.Reserved, ReservedFor));
+            await ctx.RespondAsync(Units.AddUnit(Unit, user, Units.UnitStatus.Reserved, ReservedFor));
         }
 
         [Command("OpenUnit")]
@@ -323,6 +367,14 @@ namespace Nine.Commands
         [Description("Alter the status of a unit to 'Reserved' and who it is reserved for.")]
         public async Task ReserveUnit(CommandContext ctx, [Description("Unit Name")] string Unit, [Description("Monicker of who it is reserved for.")] string ReservedFor)
         {
+            if (!ReservedFor.Contains("<@!") && ReservedFor.Contains("<@"))
+            {
+                ReservedFor = ReservedFor.Replace("<@", "<@!");
+            } else
+            {
+                ReservedFor = Player.GetPlayer(ReservedFor, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention);
+            }
+
             await ctx.TriggerTypingAsync();
 
             await ctx.RespondAsync(Units.UpdateUnitStatus(Unit, Units.UnitStatus.Reserved, ReservedFor));
@@ -344,9 +396,17 @@ namespace Nine.Commands
         [Description("Alter the status of a unit to 'Taken'")]
         public async Task AssignUnit(CommandContext ctx, [Description("Unit Name")] string Unit, [Description("Which player is assigned the unit?")] string Assignee)
         {
+            if (!Assignee.Contains("<@!") && Assignee.Contains("<@"))
+            {
+                Assignee = ctx.User.Mention.Replace("<@", "<@!");
+            }
+            else
+            {
+                Assignee = Player.GetPlayer(Assignee, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention);
+            }
             await ctx.TriggerTypingAsync();
 
-            await ctx.RespondAsync(Units.UpdateUnitStatus(Unit, Units.UnitStatus.Taken,Assignee));
+            await ctx.RespondAsync(Units.UpdateUnitStatus(Unit, Units.UnitStatus.Taken, Assignee));
         }
 
         [Command("FlagMassProduced")]
@@ -369,6 +429,10 @@ namespace Nine.Commands
             await ctx.RespondAsync(Units.ToggleMassProduced(Unit, "No"));
         }
 
+
+        #endregion
+
+        #region Dictionary
         [Command("Define")]
         [Aliases("Whatis")]
         [Description("Queries our dictionary for the definition(s) of a term.")]
@@ -392,13 +456,13 @@ namespace Nine.Commands
 
             await ctx.RespondAsync(response);
 
-            if(response.Contains("This term is already in the database"))
+            if (response.Contains("This term is already in the database"))
             {
                 await ctx.RespondAsync("Do you wish to add this new definition to the term?");
 
                 var msg = await interactivity.WaitForMessageAsync(xm => xm.Content.ToLower().Contains("yes") || xm.Content.ToLower().Contains("no"), TimeSpan.FromSeconds(60));
 
-                 
+
                 if (!msg.TimedOut)
                 {
                     if (msg.Result.Content.ToLower() == "yes")
@@ -406,11 +470,13 @@ namespace Nine.Commands
                         response = Dictionary.NewTerm(Term, Definition, true);
 
                         await ctx.RespondAsync(response);
-                    } else
+                    }
+                    else
                     {
                         await ctx.RespondAsync("Understood, I will not add the term.");
                     }
-                } else
+                }
+                else
                 {
                     DiscordEmoji emoji = DiscordEmoji.FromName(ctx.Client, ":shock:");
 
@@ -427,7 +493,7 @@ namespace Nine.Commands
         {
             await ctx.TriggerTypingAsync();
 
-            await ctx.RespondAsync(Dictionary.RemoveTermDefinition(Term,DefNum, false));
+            await ctx.RespondAsync(Dictionary.RemoveTermDefinition(Term, DefNum, false));
         }
 
         [Command("RemoveTerm")]
@@ -444,14 +510,18 @@ namespace Nine.Commands
         [Command("UpdateTerm")]
         [Aliases("UpdateDefinition")]
         [Description("Update a specified term number's definition. If left blank, will update first definition.")]
-        public async Task UpdateDefinition(CommandContext ctx, [Description("Search Term")] string Term, [Description("Updated definition")]string Definition, [Description("Definition number to update")] int DefNum = 1)
+        public async Task UpdateDefinition(CommandContext ctx, [Description("Search Term")] string Term, [Description("Updated definition")] string Definition, [Description("Definition number to update")] int DefNum = 1)
         {
             await ctx.TriggerTypingAsync();
 
             await ctx.RespondAsync(Dictionary.UpdateDefinition(Term, Definition, DefNum));
         }
 
+        #endregion
+
+        #region Characters
         [Command("AddCharacter")]
+        [Aliases("AddChar")]
         [Description("DM the executing player to obtain information to add a new character to the records.")]
         public async Task AddCharacter(CommandContext ctx)
         {
@@ -469,21 +539,24 @@ namespace Nine.Commands
             if (ctx.Channel.IsPrivate)
             {
                 msg = await ctx.RespondAsync(openingMsg);
-            } else
+            }
+            else
             {
-                 msg = await ctx.Member.SendMessageAsync(openingMsg);
+                msg = await ctx.Member.SendMessageAsync(openingMsg);
             }
 
             info = await Characters.SetFirstName(msg, interactivity, info);
 
-            if(!info.Errored && !info.Quit)
+            if (!info.Errored && !info.Quit)
             {
-                await msg.RespondAsync("What is the character's last name?");
-            } else if(info.Quit)
+                await msg.RespondAsync("What is the character's last name? Enter none if they have no last name.");
+            }
+            else if (info.Quit)
             {
                 await msg.RespondAsync("Understood. Terminating command.");
                 return;
-            } else if (info.Errored)
+            }
+            else if (info.Errored)
             {
                 return;
             }
@@ -492,8 +565,9 @@ namespace Nine.Commands
 
             if (!info.Errored && !info.Quit)
             {
-                await msg.RespondAsync("What is the character's gender?");               
-            } else if (info.Quit)
+                await msg.RespondAsync("What is the character's gender?");
+            }
+            else if (info.Quit)
             {
                 await msg.RespondAsync("Understood. Terminating command.");
                 return;
@@ -507,8 +581,26 @@ namespace Nine.Commands
 
             if (!info.Errored && !info.Quit)
             {
+                await msg.RespondAsync("Is this character yours or someone else's? If yours, enter 'mine'. If someone else's please use their monicker. Mention functionality is not enabled for this command and will result in an error.");
+            }
+            else if (info.Quit)
+            {
+                await msg.RespondAsync("Understood. Terminating command.");
+                return;
+            }
+            else if (info.Errored)
+            {
+                return;
+            }
+
+            info = await Characters.SetPlayer(msg, interactivity, info);
+
+
+            if (!info.Errored && !info.Quit)
+            {
                 await msg.RespondAsync("What is the character's assigned Weapon?");
-            } else if (info.Quit)
+            }
+            else if (info.Quit)
             {
                 await msg.RespondAsync("Understood. Terminating command.");
                 return;
@@ -522,8 +614,9 @@ namespace Nine.Commands
 
             if (!info.Errored && !info.Quit)
             {
-               await msg.RespondAsync("What is the character's faction? If they are not in a faction please enter 'Independent'.");
-            } else if (info.Quit)
+                await msg.RespondAsync("What is the character's faction? If they are not in a faction please enter 'Independent'.");
+            }
+            else if (info.Quit)
             {
                 await msg.RespondAsync("Understood. Terminating command.");
                 return;
@@ -538,7 +631,8 @@ namespace Nine.Commands
             if (!info.Errored && !info.Quit)
             {
                 await msg.RespondAsync("What is the URL of the character's profile?");
-            } else if (info.Quit)
+            }
+            else if (info.Quit)
             {
                 await msg.RespondAsync("Understood. Terminating command.");
                 return;
@@ -553,7 +647,8 @@ namespace Nine.Commands
             if (!info.Errored && !info.Quit)
             {
                 await msg.RespondAsync("Is there a description for them you'd like to use when people query them? If yes, enter that blurb. If no, enter no.");
-            } else if (info.Quit)
+            }
+            else if (info.Quit)
             {
                 await msg.RespondAsync("Understood. Terminating command.");
                 return;
@@ -569,23 +664,25 @@ namespace Nine.Commands
             {
                 if (!info.Errored && !info.Quit)
                 {
-                    await msg.RespondAsync($"Does this look correct?\nFirst Name: {info.FirstName}\nLast Name: {info.LastName}\nGender: {info.Gender}\nWeapon: {info.Unit}\nFaction: {info.Faction}\nProfile: {info.Url}");
+                    await msg.RespondAsync($"Does this look correct?\nPlayer:{Player.GetPlayer(info.Player, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker)}\nFirst Name: {info.FirstName}\nLast Name: {info.LastName}\nGender: {info.Gender}\nWeapon: {info.Unit}\nFaction: {info.Faction}\nProfile: {info.Url}");
                 }
                 else if (info.Quit)
                 {
                     await msg.RespondAsync("Understood. Terminating command.");
                     return;
-                } else if (info.Errored)
-                { 
+                }
+                else if (info.Errored)
+                {
                     return;
                 }
 
                 info = await Characters.CorrectInfo(msg, interactivity, info);
 
-                if(!info.Correct)
+                if (!info.Correct)
                 {
                     info = await Characters.GetCorrectInfo(msg, interactivity, info);
-                } else
+                }
+                else
                 {
                     info.Relist = false;
                 }
@@ -594,26 +691,27 @@ namespace Nine.Commands
                 {
                     if (!info.Errored && !info.Quit)
                     {
-                            await msg.RespondAsync("What do you need to edit? Select from the list:\nFirst Name\nLast Name\nGender\nWeapon\nFaction\nURL\nBlurb");
+                        await msg.RespondAsync("What do you need to edit? Select from the list:\nPlayer\nFirst Name\nLast Name\nGender\nWeapon\nFaction\nURL\nBlurb");
 
-                            info = await Characters.GetCorrectInfo(msg, interactivity, info);
-                    
-           
-                    } else if(info.Quit)
+                        info = await Characters.GetCorrectInfo(msg, interactivity, info);
+
+
+                    }
+                    else if (info.Quit)
                     {
                         await msg.RespondAsync("Understood. Terminating command.");
                         return;
                     }
-                    else if(info.Errored)
+                    else if (info.Errored)
                     {
                         return;
                     }
                 }
             }
 
-            if(!info.Errored && !info.Quit)
+            if (!info.Errored && !info.Quit)
             {
-                Characters.AddCharacter(info, ctx.User.Mention);
+                Characters.AddCharacter(info);
 
                 await msg.RespondAsync($"Thank you, {info.FirstName} {info.LastName} has been added to the records.");
             }
@@ -623,5 +721,116 @@ namespace Nine.Commands
                 return;
             }
         }
+
+        [Command("PlayedBy")]
+        [Description("Lists all characters played by specified player.")]
+        public async Task PlayedBy(CommandContext ctx, [Description("Player monicker.")] string player)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Characters.PlayerChars(player));
+        }
+        #endregion
+
+        #region Factions
+        [Command("AddFaction")]
+        [Description("Record a new faction into the database")]
+        public async Task AddFaction(CommandContext ctx, [Description("Name of Faction")] string Faction, [Description("Leader's First Name")] string FirstName, [Description("Leader's Last Name")] string LastName, [Description("Faction Profile URL")] string URL)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.AddFaction(Faction, FirstName, LastName, URL));
+        }
+
+        [Command("Faction")]
+        [Aliases("FactionInfo")]
+        [Description("Retrieve information about the faction specified")]
+        public async Task FactionInfo(CommandContext ctx, [Description("Faction Name")]string Faction)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.Faction(Faction));
+        }
+
+        [Command("UpdateLeader")]
+        [Aliases("UpdateFactionLeader", "NewFactionLeader", "NewLeader")]
+        [Description("Change the leader of the specified faction")]
+        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+
+        public async Task FactionLeader(CommandContext ctx, [Description("The faction you wish to update")] string Faction, [Description("Leader's First Name")] string FirstName, [Description("Leader's Last Name")] string LastName)
+        {
+
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.UpdateFactionLeader(Faction, FirstName, LastName));
+        }
+
+        [Command("UpdateFactionName")]
+        [Description("Change/Correct a faction's name")]
+        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        public async Task FactionName(CommandContext ctx, [Description("The faction you wish to update")] string Faction, [Description("Faction's Updated/corrected name")] string NewName)
+        {
+
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.UpdateFactionName(Faction, NewName));
+        }
+
+        [Command("UpdateFactionURL")]
+        [Description("Change/Correct a faction's url")]
+        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        public async Task FactionURL(CommandContext ctx, [Description("The faction you wish to update")] string Faction, [Description("Faction's Updated/corrected profile url")] string NewURL)
+        {
+
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.UpdateFactionURL(Faction, NewURL));
+        }
+
+        [Command("ActiveFaction")]
+        [Aliases("OpenFaction")]
+        [Description("Set the faction to 'Active', signifying it is open for anyone to join.")]
+        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        public async Task OpenFaction(CommandContext ctx, [Description("Sets the named faction to 'open' status -- Ie anyone can join.")] string Faction)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.UpdateFactionStatus(Faction, Factions.FactionStatus.Active));
+        }
+
+        [Command("CloseFaction")]
+        [Aliases("ClosedFaction")]
+        [Description("Set the faction to 'closed', signifying that the faction is full and/or not taking new members.")]
+        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        public async Task CloseFaction(CommandContext ctx, [Description("Sets the named faction to 'open' status -- Ie anyone can join.")] string Faction)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.UpdateFactionStatus(Faction, Factions.FactionStatus.Closed));
+        }
+
+        [Command("RestrictFaction")]
+        [Aliases("RestrictedFaction")]
+        [Description("Set the faction to 'restricted', signifying that the faction is only accepting members by selective recruitment.")]
+        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        public async Task RestrictFaction(CommandContext ctx, [Description("Sets the named faction to 'open' status -- Ie anyone can join.")] string Faction)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.UpdateFactionStatus(Faction, Factions.FactionStatus.Restricted));
+        }
+
+        [Command("DefunctFaction")]
+        [Aliases("DeadFaction")]
+        [Description("Set the faction to 'defunct', signifying that the faction is out of operations. Or use it as mask to make it look dead.")]
+        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        public async Task DeadFaction(CommandContext ctx, [Description("Sets the named faction to 'open' status -- Ie anyone can join.")] string Faction)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.UpdateFactionStatus(Faction, Factions.FactionStatus.Defunct));
+        }
+
+        #endregion
     }
 }

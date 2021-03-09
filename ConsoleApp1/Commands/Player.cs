@@ -81,6 +81,24 @@ namespace Nine.Commands
             return response;
         }
 
+        public static string UpdatePlayerStatus(string Player, PlayerStatus status)
+        {
+            string query = $"UPDATE {playerTable} SET Status='{status}' WHERE Monicker='{Player}'";
+
+            SqlCommand.ExecuteQuery(query, testing);
+
+            return $"{Player} has been updated.";
+        }
+
+        public static string UpdatePlayerMonicker(string Player, string Monicker)
+        {
+            string query = $"UPDATE {playerTable} SET Monicker='{Monicker}' WHERE Monicker='{Player}'";
+
+            SqlCommand.ExecuteQuery(query, testing);
+
+            return $"{Player} has been updated, please remember to use {Monicker} for them from now on.";
+        }
+
         #region Support
         public static bool GetPlayerStatus(string player, PlayerSearch search)
         {

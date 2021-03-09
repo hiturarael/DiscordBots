@@ -26,7 +26,6 @@ namespace Nine.Commands
 
             if(!UnitAdded(Unit))
             {
-
                 if(Status == UnitStatus.Reserved || Status == UnitStatus.Taken)
                 {
                     if(MassProduced == "Yes")
@@ -120,7 +119,7 @@ namespace Nine.Commands
 
                     Parameters[0] = "@status";
                     Parameters[1] = "@reserved";
-                    Values[0] = Unit;
+                    Values[0] = UnitStatus.ToString();
                     Values[1] = ReservedFor;
 
                 } else if(string.IsNullOrEmpty(ReservedFor) && UnitStatus == UnitStatus.Reserved)
