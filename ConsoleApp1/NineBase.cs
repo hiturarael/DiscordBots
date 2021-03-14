@@ -15,19 +15,21 @@ using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
+using DiscordBots;
 using Nine.Commands;
 
 namespace Nine
 {
     public class NineBot
     {
-        public readonly EventId BotEventId = new EventId(9, "Nine");   
-        private readonly static string config = "localconfig.json";
+        public readonly EventId BotEventId = new EventId(9, "Nine");
+        public readonly static string config = "localconfig.json";
 
         public DiscordClient Client { get; set; }
         public CommandsNextExtension Commands { get; set; }
         public InteractivityConfiguration Interactivity { get; set; }
 
+        public static ConfigJson cfgjson { get; set; }
 
         public static void Main()
         {
@@ -38,14 +40,9 @@ namespace Nine
 
         public async Task RunBotAsync()
         {
-            //load config
-            var json = "";
-            using (var fs = File.OpenRead(config))
-            using (var sr = new StreamReader(fs, new UTF8Encoding(false)))
-                json = await sr.ReadToEndAsync();
 
-            //load values
-            var cfgjson = JsonConvert.DeserializeObject<ConfigJson>(json);
+            //load config
+            cfgjson = await Config.GetConfig(config);
 
             var cfg = new DiscordConfiguration
             {
@@ -185,25 +182,4 @@ namespace Nine
             }
         }
     }
-    public struct ConfigJson
-    {
-        [JsonProperty("token")]
-        public string Token { get; private set; }
-
-        [JsonProperty("prefix")]
-        public string CommandPrefix { get; private set; }
-
-        [JsonProperty("username")]
-        public string Username { get; private set; }
-
-        [JsonProperty("host")]
-        public string Host { get; private set; }
-
-        [JsonProperty("password")]
-        public string Password { get; private set; }
-
-        [JsonProperty("database")]
-        public string Database { get; private set; }
-    }
-
 }

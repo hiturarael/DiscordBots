@@ -71,7 +71,7 @@ namespace Nine.Commands
                     return "Since you are trying to assign a machine, you need to tell me which player it is assigned to by their monicker registered in the player database.";
                 }
 
-                SqlCommand.ExecuteQuery_Params(addQuery, Parameters, Values, testing);
+                SqlCommand.ExecuteQuery_Params(addQuery, NineBot.cfgjson, Parameters, Values);
 
                 if(UnitAdded(Unit))
                 {
@@ -139,10 +139,10 @@ namespace Nine.Commands
                 }
                 else if (UnitStatus == UnitStatus.Taken && rsvd == "")
                 {
-                    SqlCommand.ExecuteQuery($"UPDATE {unitTable} SET AssignedTo = '{ReservedFor}' where UnitName='{Unit}'", testing);
+                    SqlCommand.ExecuteQuery($"UPDATE {unitTable} SET AssignedTo = '{ReservedFor}' where UnitName='{Unit}'", NineBot.cfgjson);
                 }
 
-                SqlCommand.ExecuteQuery_Params(updateQuery, Parameters, Values);
+                SqlCommand.ExecuteQuery_Params(updateQuery, NineBot.cfgjson, Parameters, Values);
 
                 if(UnitStatus == UnitStatus.Open || UnitStatus == UnitStatus.Banned)
                 {
@@ -184,7 +184,7 @@ namespace Nine.Commands
                 }
             }
 
-            SqlCommand.ExecuteQuery(query, testing);
+            SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
             return $"Flag has been set to '{MassProduced}' for {Unit}.";
         }
 
@@ -198,7 +198,7 @@ namespace Nine.Commands
                 query += "AND MassProduced = 'Yes'";
             }
 
-            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             foreach(DataRow row in dt.Rows)
             {
@@ -248,7 +248,7 @@ namespace Nine.Commands
         {
             string query = $"SELECT * FROM {unitTable} WHERE UnitName = '{Unit}'";
 
-            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             return dt;
         }
@@ -257,7 +257,7 @@ namespace Nine.Commands
         {
             string query = $"SELECT ID FROM {unitTable} WHERE UnitName='{unitName}'";
 
-            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             if (dt.Rows.Count > 0)
             {
@@ -273,7 +273,7 @@ namespace Nine.Commands
         {
             string query = $"UPDATE {unitTable} SET ReservedFor='', AssignedTo='{Player}' WHERE UnitName='{Unit}'";
 
-            SqlCommand.ExecuteQuery(query, testing);
+            SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
         }
 
         public static void ClearOnOpen(string Unit)
@@ -281,13 +281,13 @@ namespace Nine.Commands
             string query = $"UPDATE {unitTable} SET ReservedFor = @rsvdFor, AssignedTo = @asgnTo WHERE UnitName='{Unit}'";
             string[] parameters = { "@rsvdFor", "@asgnTo" };
             string[] values = { "", "" };
-            SqlCommand.ExecuteQuery_Params(query, parameters, values, testing);
+            SqlCommand.ExecuteQuery_Params(query, NineBot.cfgjson, parameters, values);
         }
 
         public static string GetUnitbyID(int UnitID)
         {
             string query = $"SELECT UnitName FROM {unitTable} WHERE ID={UnitID}";
-            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             return dt.Rows[0]["UnitName"].ToString();
         }

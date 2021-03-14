@@ -60,7 +60,7 @@ namespace Nine_Testing
             string result = Posts.AddThread(title, url, alias);
 
             //delete record
-            SqlCommand.ExecuteQuery(deleteRecord, false);
+            SqlCommand.ExecuteQuery(deleteRecord, NineBot.cfgjson);
 
             //pass/fail
             StringAssert.AreEqualIgnoringCase(expectedResult, result);
@@ -137,7 +137,7 @@ namespace Nine_Testing
             string result = Posts.AddToPostOrder(title, user, mask);
 
             //delete record
-            SqlCommand.ExecuteQuery(deleteRecord, false);
+            SqlCommand.ExecuteQuery(deleteRecord, NineBot.cfgjson);
 
             StringAssert.AreEqualIgnoringCase(expectedResult, result);
         }
@@ -157,7 +157,7 @@ namespace Nine_Testing
             //delete record
             if (expectedResult == "Player has been added.")
             {
-                SqlCommand.ExecuteQuery(deleteRecord, false);
+                SqlCommand.ExecuteQuery(deleteRecord, NineBot.cfgjson);
             }
 
             StringAssert.AreEqualIgnoringCase(expectedResult, result);

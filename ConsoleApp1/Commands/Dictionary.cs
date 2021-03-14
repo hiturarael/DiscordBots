@@ -60,7 +60,7 @@ namespace Nine.Commands
             {
                 string updateQuery = $"UPDATE {dictionaryTable} SET Definition='{Definition}' WHERE Term = '{Term}' AND DefinitionNum = {DefNum}";
 
-                SqlCommand.ExecuteQuery(updateQuery, testing);
+                SqlCommand.ExecuteQuery(updateQuery, NineBot.cfgjson);
 
                 return "I have updated that term at the specified definition number.";
             } else
@@ -78,7 +78,7 @@ namespace Nine.Commands
                     string deleteQuery = $"DELETE FROM {dictionaryTable} WHERE Term = '{Term}' AND DefinitionNum = {DefNum}";
                     string updateQuery;
 
-                    SqlCommand.ExecuteQuery(deleteQuery, testing);
+                    SqlCommand.ExecuteQuery(deleteQuery, NineBot.cfgjson);
 
                     DataTable dt = QueryTerm(Term);
 
@@ -86,14 +86,14 @@ namespace Nine.Commands
                     {
                         updateQuery = $"UPDATE {dictionaryTable} SET DefinitionNum={x} WHERE Term = '{Term}' AND DefinitionNum = {x+1}";
 
-                        SqlCommand.ExecuteQuery(updateQuery, testing);
+                        SqlCommand.ExecuteQuery(updateQuery, NineBot.cfgjson);
                     }
 
                     return "The term definition was removed and the positions of following definitions updated.";
                 } else
                 {
                     string deleteQuery = $"DELETE FROM {dictionaryTable} WHERE Term = '{Term}'";
-                    SqlCommand.ExecuteQuery(deleteQuery, testing);
+                    SqlCommand.ExecuteQuery(deleteQuery, NineBot.cfgjson);
 
                     return "The term and definitions have been removed from the dictionary.";
                 }
@@ -116,7 +116,7 @@ namespace Nine.Commands
             string[] Parameters = { "@Term", "@DefinitionNum", "@Definition" };
             string[] Values = { Term, DefNum.ToString(), Definition };
 
-            SqlCommand.ExecuteQuery_Params(query, Parameters, Values);
+            SqlCommand.ExecuteQuery_Params(query, NineBot.cfgjson, Parameters, Values);
         }
 
         static int NextTermDefNum(string Term)
@@ -155,7 +155,7 @@ namespace Nine.Commands
         {
             string Query = $"SELECT * FROM {dictionaryTable} WHERE Term = '{Term}' ORDER BY 'DefinitionNum' ASC";
 
-           return SqlCommand.ExecuteQuery(Query, testing);
+           return SqlCommand.ExecuteQuery(Query, NineBot.cfgjson);
         }
 
         static string PrintDefinitions(string Term)

@@ -50,7 +50,7 @@ namespace Nine
 
             try
             {
-                DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+                DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
                 if (dt.Rows.Count == 0)
                 {
@@ -83,7 +83,7 @@ namespace Nine
 
             query += $" OR LastName='{Firstname}'";
 
-            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
 
             return dt;
@@ -133,7 +133,7 @@ namespace Nine
             
             string[] Values = { Player.GetPlayerID(newCharacter.Player).ToString(), newCharacter.FirstName, newCharacter.LastName, newCharacter.Gender, unitID.ToString(), factionID.ToString(), newCharacter.Url, newCharacter.Blurb };
 
-            SqlCommand.ExecuteQuery_Params(query, Parameters, Values, testing);
+            SqlCommand.ExecuteQuery_Params(query, NineBot.cfgjson, Parameters, Values);
 
             Units.UpdateUnitStatus(newCharacter.Unit, Units.UnitStatus.Taken, newCharacter.Player);
         }
@@ -150,7 +150,7 @@ namespace Nine
 
             try
             {
-                DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+                DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
                 if (dt.Rows.Count == 0)
                 {
@@ -609,7 +609,7 @@ namespace Nine
             {
                 string query = $"UPDATE {charTable} SET PlayerID='{info.Player}'";
 
-                SqlCommand.ExecuteQuery(query, testing);
+                SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
                 msg += "\nPlayer";
             }
@@ -618,7 +618,7 @@ namespace Nine
             {
                 string query = $"UPDATE {charTable} SET FirstName='{info.FirstName}'";
 
-                SqlCommand.ExecuteQuery(query, testing);
+                SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
                 msg += "\nFirst Name";
             }
@@ -627,7 +627,7 @@ namespace Nine
             {
                 string query = $"UPDATE {charTable} SET LastName='{info.LastName}'";
 
-                SqlCommand.ExecuteQuery(query, testing);
+                SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
                 msg += "\nLast Name";
             }
@@ -636,7 +636,7 @@ namespace Nine
             {
                 string query = $"UPDATE {charTable} SET Gender='{info.Gender}'";
 
-                SqlCommand.ExecuteQuery(query, testing);
+                SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
                 msg += "\nGender";
             }
@@ -645,7 +645,7 @@ namespace Nine
             {
                 string query = $"UPDATE {charTable} SET UnitId='{Units.GetUnitID(info.Unit)}'";
 
-                SqlCommand.ExecuteQuery(query, testing);
+                SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
                 Units.ClearOnOpen(info.PrevUnit);
                 msg += "\nWeapon";
@@ -655,7 +655,7 @@ namespace Nine
             {
                 string query = $"UPDATE {charTable} SET Faction='{info.Faction}'";
 
-                SqlCommand.ExecuteQuery(query, testing);
+                SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
                 msg += "\nFaction";
             }
@@ -664,7 +664,7 @@ namespace Nine
             {
                 string query = $"UPDATE {charTable} SET URL='{info.Url}'";
 
-                SqlCommand.ExecuteQuery(query, testing);
+                SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
                 msg += "\nUrl";
             }
@@ -673,7 +673,7 @@ namespace Nine
             {
                 string query = $"UPDATE {charTable} SET Blurb='{info.Blurb}'";
 
-                SqlCommand.ExecuteQuery(query, testing);
+                SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
                 msg += "\nNotes";
             }
@@ -706,7 +706,7 @@ namespace Nine
         {
             string query = $"SELECT FirstName, LastName FROM {charTable} WHERE ID='{CharID}'";
 
-            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             if (dt.Rows.Count > 0)
             {
@@ -735,14 +735,14 @@ namespace Nine
         {
             string query = $"SELECT ID FROM {charTable} WHERE FirstName='{CharFirstName}' AND LastName='{CharLastName}'";
 
-            return SqlCommand.ExecuteQuery(query, testing);
+            return SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
         }
 
         public static bool URLInUse(string URL)
         {
             string query = $"SELECT * FROM {charTable} WHERE URL = '{URL}'";
 
-            if (SqlCommand.ExecuteQuery(query, testing).Rows.Count > 0)
+            if (SqlCommand.ExecuteQuery(query, NineBot.cfgjson).Rows.Count > 0)
             {
                 return true;
             }
@@ -765,7 +765,7 @@ namespace Nine
 
             try
             {
-                DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+                DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
                 foreach (DataRow r in dt.Rows)
                 {

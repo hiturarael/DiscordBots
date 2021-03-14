@@ -12,14 +12,14 @@ namespace DiscordBots.Commands
     {
         public static string WhoPlays(string name)
         {
-            string table = "nine_whoplays";
-            string query = $"SELECT * FROM {table} WHERE CharName LIKE '%{name}%'";
+            //string table = "nine_whoplays";
+            //string query = $"SELECT * FROM {table} WHERE CharName LIKE '%{name}%'";
 
             string result;
 
             try
             {
-                DataTable dt = SqlCommand.ExecuteQuery(query);
+                DataTable dt = null;//SqlCommand.ExecuteQuery(query,NineBot.cfgjson);
 
                 if (dt.Rows.Count == 0)
                 {

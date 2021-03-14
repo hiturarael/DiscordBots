@@ -36,7 +36,7 @@ namespace DiscordBots.Commands
 
             try
             {
-                DataTable dt = SqlCommand.ExecuteQuery(aliasQuery);
+                DataTable dt = null; // SqlCommand.ExecuteQuery(aliasQuery);
 
                 if (dt.Rows.Count < 1)
                 {
@@ -45,7 +45,7 @@ namespace DiscordBots.Commands
                     errors += 1;
                 }
 
-                dt = SqlCommand.ExecuteQuery(threadQuery);
+                dt = null; //SqlCommand.ExecuteQuery(threadQuery);
 
                 if (dt.Rows.Count < 1)
                 {
@@ -54,7 +54,7 @@ namespace DiscordBots.Commands
                     errors += 2;
                 }
 
-                dt = SqlCommand.ExecuteQuery(urlQuery);
+                dt = null; //SqlCommand.ExecuteQuery(urlQuery);
 
                 if (dt.Rows.Count < 1)
                 {
@@ -65,9 +65,9 @@ namespace DiscordBots.Commands
 
                 if(errors == 0)
                 {
-                    SqlCommand.ExecuteQuery_Params(query, parameters, values);
+                    //SqlCommand.ExecuteQuery_Params(query, parameters, values);
 
-                    dt = SqlCommand.ExecuteQuery(aliasQuery);
+                    dt = null; //SqlCommand.ExecuteQuery(aliasQuery);
 
                     if (dt.Rows.Count > 1)
                     {
@@ -116,7 +116,7 @@ namespace DiscordBots.Commands
 
             try
             {
-                DataTable dt = SqlCommand.ExecuteQuery(aliasQuery);
+                DataTable dt = null; //SqlCommand.ExecuteQuery(aliasQuery);
 
                 if (!Enum.IsDefined(typeof(ThreadStatus), status))
                 {
@@ -132,17 +132,17 @@ namespace DiscordBots.Commands
 
                     if (threadId.Contains("https://") || threadId.Contains("srwignition.com"))
                     {
-                        dt = SqlCommand.ExecuteQuery(urlQuery);
+                        dt = null; // SqlCommand.ExecuteQuery(urlQuery);
                         column = "URL";
 
                         result = "... Why would you try to update with the url- You have a perfectly good title and alias! *Sigh* Whatever, meatbag...";
                     } else
                     {
-                        dt = SqlCommand.ExecuteQuery(aliasQuery);
+                        dt = null; //SqlCommand.ExecuteQuery(aliasQuery);
                         column = "Alias";
                         if (dt.Rows.Count < 1)
                         {
-                            dt = SqlCommand.ExecuteQuery(threadQuery);
+                            dt = null; //SqlCommand.ExecuteQuery(threadQuery);
                             column = "Title";
                         }
                     }
@@ -154,7 +154,7 @@ namespace DiscordBots.Commands
                         updateQuery = $"UPDATE {table} (Status) VALUES(@status) WHERE threads.{column} = {threadId};";
                         //string query = $"INSERT INTO {table}(Title, Alias, URL, Status) VALUES(@title, @alias, @url, @status)";
 
-                        SqlCommand.ExecuteQuery_Params(updateQuery, parameters, values);
+                        //SqlCommand.ExecuteQuery_Params(updateQuery, parameters, values);
 
                         result = "I have updated the status of the thread.";
                     }

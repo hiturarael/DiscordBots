@@ -50,7 +50,7 @@ namespace Nine.Commands
                 string[] Parameters = { "@Faction", "@Leader", "@URL" };
                 string[] Values = { Faction, leaderID.ToString(), URL};
 
-                SqlCommand.ExecuteQuery_Params(insertQuery, Parameters, Values, testing);
+                SqlCommand.ExecuteQuery_Params(insertQuery, NineBot.cfgjson, Parameters, Values);
 
                 if (leaderID != 0)
                 {
@@ -70,7 +70,7 @@ namespace Nine.Commands
             int leaderID = Characters.GetCharID(LeaderFirstName, LeaderLastName);
             string query = $"UPDATE {factionTable} SET LeaderID={leaderID} WHERE Faction = '{Faction}'";
 
-            SqlCommand.ExecuteQuery(query, testing);
+            SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             if (leaderID != 0)
             {
@@ -86,7 +86,7 @@ namespace Nine.Commands
 
             string query = $"UPDATE {factionTable} SET Faction='{NewName}' WHERE Faction = '{Faction}'";
 
-            SqlCommand.ExecuteQuery(query, testing);
+            SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             return $"{Faction} has been updated to be {NewName}.";
         }
@@ -95,7 +95,7 @@ namespace Nine.Commands
         {
             string query = $"UPDATE {factionTable} SET FactionStatus='{status}' WHERE Faction = '{Faction}'";
 
-            SqlCommand.ExecuteQuery(query, testing);
+            SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             switch(status)
             {
@@ -116,7 +116,7 @@ namespace Nine.Commands
         {
             string query = $"UPDATE {factionTable} SET ProfileURL='{URL}' WHERE Faction = '{Faction}'";
 
-            SqlCommand.ExecuteQuery(query, testing);
+            SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             return $"The Url for {Faction} has been updated.";
         }
@@ -126,7 +126,7 @@ namespace Nine.Commands
             string query = $"SELECT Faction FROM {factionTable} WHERE FactionStatus = {status}";
             string output = $"The following factions have the status '{status}'.";
 
-            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             foreach(DataRow row in dt.Rows)
             {
@@ -141,7 +141,7 @@ namespace Nine.Commands
             string query = $"SELECT Faction FROM {factionTable}";
             string output = $"Here is a list of all factions in our records:";
 
-            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             foreach (DataRow row in dt.Rows)
             {
@@ -157,7 +157,7 @@ namespace Nine.Commands
             string query = $"SELECT FirstName, LastName FROM {charTable} WHERE FactionID = {factionID}";
             string output = $"The following characters are members of {Faction}:";
 
-            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             foreach(DataRow row in dt.Rows)
             {
@@ -172,7 +172,7 @@ namespace Nine.Commands
         {
             string factionQuery = $"SELECT * FROM {factionTable} where Faction = '{Faction}'";
 
-            return SqlCommand.ExecuteQuery(factionQuery, testing);
+            return SqlCommand.ExecuteQuery(factionQuery, NineBot.cfgjson);
         }
 
         public static bool FactionExists(string Faction)
@@ -190,7 +190,7 @@ namespace Nine.Commands
         {
             string query = $"SELECT FactionID FROM {factionTable} WHERE Faction='{Faction}'";
 
-            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             if (dt.Rows.Count > 0)
             {
@@ -206,7 +206,7 @@ namespace Nine.Commands
         {
             string query = $"SELECT Faction FROM {factionTable} WHERE FactionID ={FactionID}";
 
-            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             return dt.Rows[0]["Faction"].ToString();
         }

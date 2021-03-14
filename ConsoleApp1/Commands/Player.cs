@@ -36,19 +36,19 @@ namespace Nine.Commands
             try
             {
                 //check for @user existing
-                DataTable dt = SqlCommand.ExecuteQuery(userQuery, testing);
+                DataTable dt = SqlCommand.ExecuteQuery(userQuery, NineBot.cfgjson);
 
                 if (dt.Rows.Count < 1)
                 {
                     //check for monicker existing
-                    dt = SqlCommand.ExecuteQuery(monickerQuery, testing);
+                    dt = SqlCommand.ExecuteQuery(monickerQuery, NineBot.cfgjson);
 
                     if (dt.Rows.Count < 1)
                     {
                         //add user
-                        SqlCommand.ExecuteQuery_Params(addQuery, parameters, values);
+                        SqlCommand.ExecuteQuery_Params(addQuery, NineBot.cfgjson, parameters, values);
 
-                        dt = SqlCommand.ExecuteQuery(userQuery, testing);
+                        dt = SqlCommand.ExecuteQuery(userQuery, NineBot.cfgjson);
 
                         if (dt.Rows.Count == 1)
                         {
@@ -85,7 +85,7 @@ namespace Nine.Commands
         {
             string query = $"UPDATE {playerTable} SET Status='{status}' WHERE Monicker='{Player}'";
 
-            SqlCommand.ExecuteQuery(query, testing);
+            SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             return $"{Player} has been updated.";
         }
@@ -94,7 +94,7 @@ namespace Nine.Commands
         {
             string query = $"UPDATE {playerTable} SET Monicker='{Monicker}' WHERE Monicker='{Player}'";
 
-            SqlCommand.ExecuteQuery(query, testing);
+            SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             return $"{Player} has been updated, please remember to use {Monicker} for them from now on.";
         }
@@ -111,10 +111,10 @@ namespace Nine.Commands
             switch (search)
             {
                 case PlayerSearch.Mention:
-                    dt = SqlCommand.ExecuteQuery(playerCheck, testing);
+                    dt = SqlCommand.ExecuteQuery(playerCheck, NineBot.cfgjson);
                     break;
                 case PlayerSearch.Monicker:
-                    dt = SqlCommand.ExecuteQuery(monickerCheck, testing);
+                    dt = SqlCommand.ExecuteQuery(monickerCheck, NineBot.cfgjson);
                     break;
             }
 
@@ -155,10 +155,10 @@ namespace Nine.Commands
             switch(search)
             {
                 case PlayerSearch.Mention:
-                    dt = SqlCommand.ExecuteQuery(playerCheck, testing);
+                    dt = SqlCommand.ExecuteQuery(playerCheck, NineBot.cfgjson);
                     break;
                 case PlayerSearch.Monicker:
-                    dt = SqlCommand.ExecuteQuery(monickerCheck, testing);
+                    dt = SqlCommand.ExecuteQuery(monickerCheck, NineBot.cfgjson);
                     break;
             }
 
@@ -202,10 +202,10 @@ namespace Nine.Commands
             switch (search)
             {
                 case PlayerSearch.Mention:
-                    dt = SqlCommand.ExecuteQuery(playerCheck, testing);
+                    dt = SqlCommand.ExecuteQuery(playerCheck, NineBot.cfgjson);
                     break;
                 case PlayerSearch.Monicker:
-                    dt = SqlCommand.ExecuteQuery(monickerCheck, testing);
+                    dt = SqlCommand.ExecuteQuery(monickerCheck, NineBot.cfgjson);
                     break;
             }
 
@@ -224,7 +224,7 @@ namespace Nine.Commands
             playerMention = playerMention.Replace("<@!", "").Replace("<@", "").Replace(">", "");
             string query = $"SELECT ID FROM {playerTable} WHERE Player LIKE'%{playerMention}%'";
 
-            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             if(dt.Rows.Count > 0)
             {
@@ -238,7 +238,7 @@ namespace Nine.Commands
         public static string GetPlayerByID(int ID)
         {
             string query = $"SELECT Monicker FROM {playerTable} WHERE ID={ID}";
-            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
             return dt.Rows[0]["Monicker"].ToString();
         }

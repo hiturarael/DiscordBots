@@ -15,7 +15,7 @@ namespace Nine.Commands
             string[] parameters = { "@command", "@arguments", "@player" };
             string[] values = { command, arguments, player };
 
-            SqlCommand.ExecuteQuery_Params(query, parameters, values);
+            SqlCommand.ExecuteQuery_Params(query, NineBot.cfgjson, parameters, values);
         }
     }
 }

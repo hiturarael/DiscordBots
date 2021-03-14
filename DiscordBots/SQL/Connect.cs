@@ -2,37 +2,20 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Text;
+using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 
 namespace DiscordBots.SQL
 {
     public class Connect
     {
-        public static MySqlConnection ConnectDB(bool testing = false)
+        public static MySqlConnection ConnectDB(ConfigJson cfgjson)
         {
             string connString;
-            string host;
-            string catalog;
-            string user;
-            string password;
-
-            if(testing)
-            {
-                host = Environment.GetEnvironmentVariable("test_host");
-                catalog = Environment.GetEnvironmentVariable("test_database");
-                user = Environment.GetEnvironmentVariable("test_username");
-                password = Environment.GetEnvironmentVariable("test_password");
-            } else
-            {
-                host = Environment.GetEnvironmentVariable("host");
-                catalog = Environment.GetEnvironmentVariable("Database");
-                user = Environment.GetEnvironmentVariable("UserName");
-                password =  Environment.GetEnvironmentVariable("Password");
-            }
 
             MySqlConnection connection;
 
-            connString = @$"Data Source={host}; Database={catalog}; UID={user}; password={password}";
+            connString = @$"Data Source={cfgjson.Host}; Database={cfgjson.Database}; UID={cfgjson.Username}; password={cfgjson.Password}";
 
             try
             {

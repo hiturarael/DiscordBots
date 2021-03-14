@@ -45,7 +45,7 @@ namespace Nine.Commands
 
                 for (int x = 0; x < 2; x++)
                 { 
-                    dt = SqlCommand.ExecuteQuery(aliasQuery, testing);
+                    dt = SqlCommand.ExecuteQuery(aliasQuery, NineBot.cfgjson);
              
                     if (dt.Rows.Count >= 1)
                     {
@@ -69,7 +69,7 @@ namespace Nine.Commands
 
                 aliasQuery = $"SELECT * from {threadTable} WHERE Alias = '{alias}'";
 
-                dt = SqlCommand.ExecuteQuery(threadQuery, testing);
+                dt = SqlCommand.ExecuteQuery(threadQuery, NineBot.cfgjson);
 
                 for (int x = 0; x < 2; x++)
                 {
@@ -95,7 +95,7 @@ namespace Nine.Commands
                 }
 
                 
-                dt = SqlCommand.ExecuteQuery(urlQuery, testing);
+                dt = SqlCommand.ExecuteQuery(urlQuery, NineBot.cfgjson);
 
                 if (dt.Rows.Count >= 1)
                 {
@@ -110,9 +110,9 @@ namespace Nine.Commands
 
                 if (errors == 0)
                 {
-                    SqlCommand.ExecuteQuery_Params(query, parameters, values);
+                    SqlCommand.ExecuteQuery_Params(query, NineBot.cfgjson, parameters, values);
 
-                    dt = SqlCommand.ExecuteQuery(aliasQuery, testing);
+                    dt = SqlCommand.ExecuteQuery(aliasQuery, NineBot.cfgjson);
 
                     if (dt.Rows.Count == 1)
                     {
@@ -177,18 +177,18 @@ namespace Nine.Commands
 
                     if (threadId.Contains("https://") || threadId.Contains("srwignition.com"))
                     {
-                        dt = SqlCommand.ExecuteQuery(urlQuery, testing);
+                        dt = SqlCommand.ExecuteQuery(urlQuery, NineBot.cfgjson);
                         column = "URL";
 
                         result = "... Why would you try to update with the url- You have a perfectly good title and alias! *Sigh* Whatever, meatbag...";
                     }
                     else
                     {
-                        dt = SqlCommand.ExecuteQuery(aliasQuery, testing);
+                        dt = SqlCommand.ExecuteQuery(aliasQuery, NineBot.cfgjson);
                         column = "Alias";
                         if (dt.Rows.Count < 1)
                         {
-                            dt = SqlCommand.ExecuteQuery(threadQuery, testing);
+                            dt = SqlCommand.ExecuteQuery(threadQuery, NineBot.cfgjson);
                             column = "Title";
                         }
                     }
@@ -200,7 +200,7 @@ namespace Nine.Commands
                         updateQuery = $"UPDATE {threadTable} SET Status=@status where {column} = '{threadId}'";//(Status) VALUES(@status) WHERE {column} = {threadId}";
                         //string query = $"INSERT INTO {table}(Title, Alias, URL, Status) VALUES(@title, @alias, @url, @status)";
 
-                        SqlCommand.ExecuteQuery_Params(updateQuery, parameters, values);
+                        SqlCommand.ExecuteQuery_Params(updateQuery, NineBot.cfgjson, parameters, values);
 
                         if (result == "")
                         {
@@ -249,7 +249,7 @@ namespace Nine.Commands
                         //add to post order
                         try
                         {
-                            SqlCommand.ExecuteQuery_Params(addPlayerQuery, parameters, values, testing);
+                            SqlCommand.ExecuteQuery_Params(addPlayerQuery, NineBot.cfgjson, parameters, values);
 
                             if (!PlayerAdded(postOrderTable, player, threadNum))
                             {
@@ -373,7 +373,7 @@ namespace Nine.Commands
                     //remove player from order
                     string removalQuery = $"DELETE From postorder where ThreadID='{threadNum}' AND Player='{unmasked}'";
 
-                    SqlCommand.ExecuteQuery(removalQuery, testing);
+                    SqlCommand.ExecuteQuery(removalQuery, NineBot.cfgjson);
 
                     //update remaining players with new order
                     foreach (string playr in plr)
@@ -382,7 +382,7 @@ namespace Nine.Commands
                         string[] par = { "@position" };
                         string[] val = { pos[added] };
 
-                        SqlCommand.ExecuteQuery_Params(updateQuery, par, val);
+                        SqlCommand.ExecuteQuery_Params(updateQuery, NineBot.cfgjson, par, val);
 
                         added++;
                     }
@@ -418,7 +418,7 @@ namespace Nine.Commands
                 string threadNum = row["ID"].ToString();
                 string deleteQuery = $"DELETE FROM {postOrderTable} WHERE ThreadID= {threadNum}";
 
-                SqlCommand.ExecuteQuery(deleteQuery, testing);
+                SqlCommand.ExecuteQuery(deleteQuery, NineBot.cfgjson);
 
                 result = "Post order has been reset. You may now execute adding to the order.";
             } else
@@ -499,7 +499,7 @@ namespace Nine.Commands
 
                         //if user is up, add to database
                         ClearCooldown(user, threadNum);
-                        SqlCommand.ExecuteQuery_Params(addPostQuery, arguments, values, testing);
+                        SqlCommand.ExecuteQuery_Params(addPostQuery, NineBot.cfgjson, arguments, values);
 
                         upNext = QueryNextName(threadNum);
                         dt = QueryPostOrder(threadNum, postOrderTable);
@@ -669,10 +669,10 @@ namespace Nine.Commands
         {
             string threadTitleQuery = $"SELECT * from {threadTable} where Title = '{threadId}'";
             string threadAliasQuery = $"SELECT * from {threadTable} where Alias = '{threadId}'";
-            DataTable dt = SqlCommand.ExecuteQuery(threadTitleQuery, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(threadTitleQuery, NineBot.cfgjson);
             if (dt.Rows.Count == 0)
             {
-                dt = SqlCommand.ExecuteQuery(threadAliasQuery, testing);
+                dt = SqlCommand.ExecuteQuery(threadAliasQuery, NineBot.cfgjson);
             }
 
             return dt;
@@ -702,7 +702,7 @@ namespace Nine.Commands
         {
             string playerQuery = $"SELECT Player from {table} where Player = '{PlayerID}' AND ThreadID ='{threadId}'";            
 
-            DataTable dt = SqlCommand.ExecuteQuery(playerQuery, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(playerQuery, NineBot.cfgjson);
 
             if(dt.Rows.Count > 0)
             {
@@ -717,7 +717,7 @@ namespace Nine.Commands
         {
             string playerQuery = $"SELECT Player from {table} where Monicker = '{PlayerID}'";
 
-            DataTable dt = SqlCommand.ExecuteQuery(playerQuery, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(playerQuery, NineBot.cfgjson);
 
             if (dt.Rows.Count > 0)
             {
@@ -733,7 +733,7 @@ namespace Nine.Commands
         {
             string playerQuery = $"SELECT PostPosition from {table} where PostPosition = '{positionNum}'  AND ThreadID ='{threadId}'";
 
-            DataTable dt = SqlCommand.ExecuteQuery(playerQuery, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(playerQuery, NineBot.cfgjson);
 
             if (dt.Rows.Count > 0)
             {
@@ -756,7 +756,7 @@ namespace Nine.Commands
         {
             string PostOrderQuery = $"SELECT * FROM {postOrderTable} WHERE ThreadID = {threadNum} ORDER BY PostPosition ASC";
 
-            return SqlCommand.ExecuteQuery(PostOrderQuery, testing);
+            return SqlCommand.ExecuteQuery(PostOrderQuery, NineBot.cfgjson);
 
         }
 
@@ -764,21 +764,21 @@ namespace Nine.Commands
         {
             string PostOrderQuery = $"SELECT * FROM {postOrderTable} WHERE ThreadID = {threadNum} AND PostPosition = {postPos}";
 
-            return SqlCommand.ExecuteQuery(PostOrderQuery, testing);
+            return SqlCommand.ExecuteQuery(PostOrderQuery, NineBot.cfgjson);
         }
 
         static DataTable QueryWhosUp(int threadID)
         {
             string postQuery = $"SELECT * FROM {postTable} where ThreadID ='{threadID}' ORDER BY PostDate ASC";
 
-            return SqlCommand.ExecuteQuery(postQuery, testing);
+            return SqlCommand.ExecuteQuery(postQuery, NineBot.cfgjson);
         }
 
         static void PurgePostedForThread(int threadID)
         {
             string postQuery = $"DELETE FROM {postTable} WHERE ThreadID = {threadID}";
 
-            SqlCommand.ExecuteQuery(postQuery, testing);
+            SqlCommand.ExecuteQuery(postQuery, NineBot.cfgjson);
 
             ClearCooldown(threadID);
         }
@@ -789,13 +789,13 @@ namespace Nine.Commands
             string pingQuery = $"INSERT INTO {pingTable} (user, ThreadID, pingAt, cooldown) VALUES(@user, @thread, @pinged, @cooldown)";
             string[] parameters = { "@user", "@thread", "@pinged", "@cooldown" };
             string[] values = { user, threadNum.ToString(), pingTime.ToString("yyyy-MM-dd HH:mm:ss"), cooldownTime.ToString("yyyy-MM-dd HH:mm:ss") };
-            SqlCommand.ExecuteQuery_Params(pingQuery, parameters, values);
+            SqlCommand.ExecuteQuery_Params(pingQuery, NineBot.cfgjson, parameters, values);
         }
 
         static bool CooldownExpired(string user, DateTime pingTime, int threadNum)
         {
             string cooldownQuery = $"SELECT cooldown FROM {pingTable} WHERE ThreadID = {threadNum} AND user = '{user}' ORDER BY cooldown asc";
-            DataTable dt = SqlCommand.ExecuteQuery(cooldownQuery, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(cooldownQuery, NineBot.cfgjson);
 
             if(dt.Rows.Count > 0)
             {
@@ -822,11 +822,11 @@ namespace Nine.Commands
             string cooldownQuery = $"SELECT cooldown FROM {pingTable} WHERE ThreadID = {threadNum} AND user = '{user}' ORDER BY cooldown asc";
             string deleteCooldownQuery = $"DELETE FROM {pingTable} WHERE ThreadID = {threadNum} AND user='{user}'";
 
-            DataTable dt = SqlCommand.ExecuteQuery(cooldownQuery, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(cooldownQuery, NineBot.cfgjson);
 
             if(dt.Rows.Count > 0)
             {
-                SqlCommand.ExecuteQuery(deleteCooldownQuery,testing);
+                SqlCommand.ExecuteQuery(deleteCooldownQuery, NineBot.cfgjson);
             }
         }
 
@@ -835,11 +835,11 @@ namespace Nine.Commands
             string cooldownQuery = $"SELECT cooldown FROM {pingTable} WHERE ThreadID = {threadNum} ORDER BY cooldown asc";
             string deleteCooldownQuery = $"DELETE FROM {pingTable} WHERE ThreadID = {threadNum}";
 
-            DataTable dt = SqlCommand.ExecuteQuery(cooldownQuery, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(cooldownQuery, NineBot.cfgjson);
 
             if (dt.Rows.Count > 0)
             {
-                SqlCommand.ExecuteQuery(deleteCooldownQuery, testing);
+                SqlCommand.ExecuteQuery(deleteCooldownQuery, NineBot.cfgjson);
             }
         }
 
@@ -847,7 +847,7 @@ namespace Nine.Commands
         {
             string postQuery = $"SELECT * FROM {postOrderTable} where ThreadID ='{threadID}'";
 
-            DataTable dt = SqlCommand.ExecuteQuery(postQuery, testing);
+            DataTable dt = SqlCommand.ExecuteQuery(postQuery, NineBot.cfgjson);
 
             string position;
 

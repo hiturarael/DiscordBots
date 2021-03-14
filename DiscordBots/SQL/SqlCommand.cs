@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using MySql.Data.MySqlClient;
+using System.Threading.Tasks;
 
 namespace DiscordBots.SQL
 {
     public class SqlCommand
     {
-        public static DataTable ExecuteQuery(string query, bool testing = false)
+        public static DataTable ExecuteQuery(string query, ConfigJson cfgjson)
         {
             MySqlCommand cmd;
             MySqlDataReader reader;
             DataTable dt = new DataTable();
 
             //create and open connection
-            MySqlConnection conn = Connect.ConnectDB(testing);
+            MySqlConnection conn =  Connect.ConnectDB(cfgjson);
 
             try
             {
@@ -44,12 +45,12 @@ namespace DiscordBots.SQL
             return dt;
         }
 
-        public static void ExecuteQuery_Params(string query, string[] parameters, string[] parameterValues, bool testing = false)
+        public static void ExecuteQuery_Params(string query, ConfigJson cfgjson, string[] parameters, string[] parameterValues)
         {
             MySqlCommand cmd;
 
             //create and open connection
-            MySqlConnection conn = Connect.ConnectDB(testing);
+            MySqlConnection conn = Connect.ConnectDB(cfgjson);
 
             try
             {
