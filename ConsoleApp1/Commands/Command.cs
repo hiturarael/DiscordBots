@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -58,7 +59,7 @@ namespace Nine.Commands
         }
 
         [Command("Reminder")]
-        [Aliases("RemindPost", "PostReminder", "remind")]
+        [Aliases("RemindPost", "PostReminder", "Remind")]
         [Description("Queries the current post order and responds with the next in line.")]
         public async Task Reminder(CommandContext ctx, [Description("Thread title or Alias")] string thread)
         {
@@ -318,7 +319,7 @@ namespace Nine.Commands
         }
 
         [Command("AddTakenUnit")]
-        [Aliases("AddTakenWeapon", "AddTaken")]
+        [Aliases("AddTakenWeapon", "AddTaken", "AddAssigned", "AddAssignedUnit", "AddAssignedWeapon")]
         [Description("Add an assigned unit to the database")]
         public async Task AddTakenUnit(CommandContext ctx, [Description("Unit Name")] string Unit, [Description("Assigns the unit to a player, who can later assign the unit to a character.")] string AssignedPlayer)
         {
@@ -429,7 +430,55 @@ namespace Nine.Commands
             await ctx.RespondAsync(Units.ToggleMassProduced(Unit, "No"));
         }
 
+        [Command("BannedUnits")]
+        [Aliases("BannedWeapons","AllBanned")]
+        [Description("List the Mobile Weapons and other units currently not available for use in Ignition.")]
+        public async Task BannedUnits(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
 
+            await ctx.RespondAsync(Units.ListUnits(Units.UnitStatus.Banned));
+        }
+
+        [Command("OpenUnits")]
+        [Aliases("OpenWeapons","AllOpen","AllAvailable","AvailableUnits","AvailableWeapons")]
+        [Description("List the Mobile Weapons and other units currently not available for use in Ignition.")]
+        public async Task OpenUnits(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Units.ListUnits(Units.UnitStatus.Open));
+        }
+
+        [Command("TakenUnits")]
+        [Aliases("TakenWeapons", "AssignedUnits", "AssignedWeapons","AllAssigned")]
+        [Description("List the Mobile Weapons and other units currently not available for use in Ignition.")]
+        public async Task TakenUnits(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Units.ListUnits(Units.UnitStatus.Taken));
+        }
+
+        [Command("ReservedUnits")]
+        [Aliases("ReservedWeapons", "AllReserved")]
+        [Description("List the Mobile Weapons and other units currently not available for use in Ignition.")]
+        public async Task ReservedUnits(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Units.ListUnits(Units.UnitStatus.Reserved));
+        }
+
+        [Command("MPUnits")]
+        [Aliases("MPWeapons", "AllMP", "MassProducedUnits","MassProducedWeapons","AllMassProduced")]
+        [Description("List the Mobile Weapons and other units currently not available for use in Ignition.")]
+        public async Task MassProducedUnits(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Units.ListUnits(Units.UnitStatus.Open, true));
+        }
         #endregion
 
         #region Dictionary
@@ -523,6 +572,7 @@ namespace Nine.Commands
         [Command("AddCharacter")]
         [Aliases("AddChar")]
         [Description("DM the executing player to obtain information to add a new character to the records.")]
+
         public async Task AddCharacter(CommandContext ctx)
         {
             var interactivity = ctx.Client.GetInteractivity();
@@ -730,6 +780,312 @@ namespace Nine.Commands
 
             await ctx.RespondAsync(Characters.PlayerChars(player));
         }
+
+        [Command("EditCharacter")]
+        [Aliases("EditChar")]
+        [Description("Allows a player to edit their character information.")]
+        public async Task EditChar(CommandContext ctx)
+        {
+            var interactivity = ctx.Client.GetInteractivity();
+            List<CharInfo> chars = new List<CharInfo>();
+            CharInfo info = new CharInfo();
+            var msg = ctx.Message;
+            bool loop = true;
+
+            chars = await Task.Run(() => Characters.GetListCharacters(ctx.Message.Author.Mention));
+
+            string openMsg = $"Here are all the characters registered under your ID, which would you like to update? Type quit at anytime to terminate the command. \nPlease specify with the number corresponding to the character.\n{Characters.ListInfo(chars)}";
+
+            if (chars.Count > 0)
+            {
+                //list player's characters
+                if (ctx.Channel.IsPrivate)
+                {
+                    msg = await ctx.RespondAsync(openMsg);
+                }
+                else
+                {
+                    msg = await ctx.Member.SendMessageAsync(openMsg);
+                }
+
+                var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Here are all the characters registered under your ID,") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
+
+                while (loop)
+                {
+                    if (!rsp.TimedOut)
+                    {
+                        info = await Task.Run(() => Characters.SelectChar(chars, rsp.Result.Content));
+
+                        if (!info.Errored)
+                        { 
+                            await rsp.Result.RespondAsync($"Here is the current data for {info.FirstName}.\n\nFirst Name: {info.FirstName}\nLast Name: {info.LastName}\nGender: {info.Gender}\nWeapon: {info.Unit}\nFaction: {info.Faction}\nURL: {info.Url}\nNotes: {info.Blurb}");
+                            loop = false;
+                        }
+                        else
+                        {
+                            if (rsp.Result.Content.ToLower() != "quit")
+                            {
+                                loop = true;
+                                await rsp.Result.RespondAsync(openMsg);
+                            } else
+                            {
+                                loop = false;
+                                await rsp.Result.RespondAsync("Understood. Terminating command.");
+                                return;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        await msg.RespondAsync("I see you're busy now. Try again later then.");
+                        loop = false;
+                    }
+                }
+
+                while (!info.Correct)
+                {
+                    info.Relist = true;
+                    while (info.Relist)
+                    {
+                        //list what youd like to edit
+                        await rsp.Result.RespondAsync("What do you need to edit?");
+
+                        //await response
+                        //switch statement
+                        info = await Characters.GetCorrectInfo(rsp.Result, interactivity, info);
+
+                        //timeout condition
+                        if (!info.Errored && !info.Quit)
+                        {
+                            loop = false;
+                        }
+                        else if (info.Quit)
+                        {
+                            loop = false;
+                            await rsp.Result.RespondAsync("Understood. Terminating command.");
+                            return;
+                        }
+                        else if (info.Errored)
+                        {
+                            await rsp.Result.RespondAsync("Looks like something went wrong. Try again or enter 'quit' to terminate command.");
+                            info.Errored = false;
+                            info.Relist = true;
+                        }
+                    }
+
+                    if (!info.Errored && !info.Quit)
+                    {
+                        await msg.RespondAsync($"Does this look correct?\nPlayer:{Player.GetPlayer(info.Player, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker)}\nFirst Name: {info.FirstName}\nLast Name: {info.LastName}\nGender: {info.Gender}\nWeapon: {info.Unit}\nFaction: {info.Faction}\nProfile: {info.Url}");
+                    }
+                    else if (info.Quit)
+                    {
+                        await msg.RespondAsync("Understood. Terminating command.");
+                        return;
+                    }
+                    else if (info.Errored)
+                    {
+                        return;
+                    }
+
+                    info = await Characters.CorrectInfo(msg, interactivity, info);
+                }
+
+                //execute update
+                await rsp.Result.RespondAsync(Characters.EditChar(info));
+            } else
+            {
+                await ctx.Member.SendMessageAsync("You have no characters in the database to edit.");
+            }
+        }
+
+        [Command("EditCharacter")]
+        [Aliases("EditOtherChar")]
+        [Description("Allows a player to edit their character information.")]
+        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        public async Task EditChar(CommandContext ctx, [Description("Player to Edit")] string monicker)
+        {
+            var interactivity = ctx.Client.GetInteractivity();
+            List<CharInfo> chars = new List<CharInfo>();
+            CharInfo info = new CharInfo();
+            var msg = ctx.Message;
+            bool loop = true;
+
+            chars = await Task.Run(() => Characters.GetListCharacters(Player.GetPlayer(monicker,Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention)));
+
+            string openMsg = $"Here are all the characters registered under your ID, which would you like to update? Type quit at anytime to terminate the command. \nPlease specify with the number corresponding to the character.\n{Characters.ListInfo(chars)}";
+
+            if (chars.Count > 0)
+            {
+                //list player's characters
+                if (ctx.Channel.IsPrivate)
+                {
+                    msg = await ctx.RespondAsync(openMsg);
+                }
+                else
+                {
+                    msg = await ctx.Member.SendMessageAsync(openMsg);
+                }
+
+                var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Here are all the characters registered under your ID,") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
+
+                while (loop)
+                {
+                    if (!rsp.TimedOut)
+                    {
+                        info = await Task.Run(() => Characters.SelectChar(chars, rsp.Result.Content));
+
+                        if (!info.Errored)
+                        {
+                            await rsp.Result.RespondAsync($"Here is the current data for {info.FirstName}.\n\nFirst Name: {info.FirstName}\nLast Name: {info.LastName}\nGender: {info.Gender}\nWeapon: {info.Unit}\nFaction: {info.Faction}\nURL: {info.Url}\nNotes: {info.Blurb}");
+                            loop = false;
+                        }
+                        else
+                        {
+                            if (rsp.Result.Content.ToLower() != "quit")
+                            {
+                                loop = true;
+                                await rsp.Result.RespondAsync(openMsg);
+                            }
+                            else
+                            {
+                                loop = false;
+                                await rsp.Result.RespondAsync("Understood. Terminating command.");
+                                return;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        await msg.RespondAsync("I see you're busy now. Try again later then.");
+                        loop = false;
+                    }
+                }
+
+                while (!info.Correct)
+                {
+                    info.Relist = true;
+                    while (info.Relist)
+                    {
+                        //list what youd like to edit
+                        await rsp.Result.RespondAsync("What do you need to edit?");
+
+                        //await response
+                        //switch statement
+                        info = await Characters.GetCorrectInfo(rsp.Result, interactivity, info);
+
+                        //timeout condition
+                        if (!info.Errored && !info.Quit)
+                        {
+                            loop = false;
+                        }
+                        else if (info.Quit)
+                        {
+                            loop = false;
+                            await rsp.Result.RespondAsync("Understood. Terminating command.");
+                            return;
+                        }
+                        else if (info.Errored)
+                        {
+                            await rsp.Result.RespondAsync("Looks like something went wrong. Try again or enter 'quit' to terminate command.");
+                            info.Errored = false;
+                            info.Relist = true;
+                        }
+                    }
+
+                    if (!info.Errored && !info.Quit)
+                    {
+                        await msg.RespondAsync($"Does this look correct?\nPlayer:{Player.GetPlayer(info.Player, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker)}\nFirst Name: {info.FirstName}\nLast Name: {info.LastName}\nGender: {info.Gender}\nWeapon: {info.Unit}\nFaction: {info.Faction}\nProfile: {info.Url}");
+                    }
+                    else if (info.Quit)
+                    {
+                        await msg.RespondAsync("Understood. Terminating command.");
+                        return;
+                    }
+                    else if (info.Errored)
+                    {
+                        return;
+                    }
+
+                    info = await Characters.CorrectInfo(msg, interactivity, info);
+                }
+
+                //execute update
+                await rsp.Result.RespondAsync(Characters.EditChar(info));
+            }
+            else
+            {
+                await ctx.Member.SendMessageAsync("You have no characters in the database to edit.");
+            }
+        }
+
+        [Command("WhoIs")]
+        [Aliases("CharInfo")]
+        [Description("Links the character's profile in the chat.")]
+        public async Task WhoIs(CommandContext ctx, [Description("Character First Name")] string firstName, [Description("Character Last Name")] string LastName = "")
+        {
+            await ctx.TriggerTypingAsync();
+            var interactivity = ctx.Client.GetInteractivity();
+
+            DataTable dt = await Task.Run(() => Characters.WhoIs(firstName, LastName));           
+
+            if(dt.Rows.Count == 0)
+            {
+                await ctx.RespondAsync("Sorry, looks like your search came up empty.");
+                return;
+            } else
+            {
+                DataRow row = null; 
+                
+                if (dt.Rows.Count > 1)
+                {
+                    bool loop = true;
+
+                    while (loop)
+                    {
+                        string listChars = "There are multiple records with your parameters. Please use the listed number to narrow it down.";
+                        List<CharInfo> info = new List<CharInfo>();
+
+                        int x = 1;
+
+                        foreach (DataRow r in dt.Rows)
+                        {
+                            CharInfo i = new CharInfo();
+
+                            i.FirstName = r["FirstName"].ToString();
+                            i.LastName = r["LastName"].ToString();
+
+                            listChars += $"\n{x} - {i.FirstName} {i.LastName}";
+                        }
+                        await ctx.RespondAsync(listChars);
+
+                        var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("There are multiple records with your parameters.Please use the listed number to narrow it down.") && xm.ChannelId == ctx.Message.ChannelId, TimeSpan.FromSeconds(60));
+
+                        if (!rsp.TimedOut)
+                        {
+                            CharInfo i = Characters.SelectChar(info, rsp.Result.Content);
+                            if (!i.Errored)
+                            {
+                                loop = false;
+                                row = dt.Rows[Convert.ToInt32(rsp.Result.Content)];
+                            }
+                        }
+                        else
+                        {
+                            await ctx.RespondAsync("I see you're busy. Try again later.");
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    row = dt.Rows[0];
+                }
+
+                await ctx.RespondAsync(Characters.WhoIs(row));
+            }
+
+            
+        }
         #endregion
 
         #region Factions
@@ -831,6 +1187,65 @@ namespace Nine.Commands
             await ctx.RespondAsync(Factions.UpdateFactionStatus(Faction, Factions.FactionStatus.Defunct));
         }
 
+        [Command("ListActiveFactions")]
+        [Aliases("ActiveFactions")]
+        [Description("Returns a list of factions with the status 'Active'")]
+        public async Task OpenFactions(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.ListFactions(Factions.FactionStatus.Active));
+        }
+
+        [Command("ListRestrictedFactions")]
+        [Aliases("RestrictedFactions")]
+        [Description("Returns a list of factions with the status 'Restricted'")]
+        public async Task RestrictedFactions(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.ListFactions(Factions.FactionStatus.Restricted));
+        }
+
+        [Command("ListClosedFactions")]
+        [Aliases("ClosedFactions")]
+        [Description("Returns a list of factions with the status 'Closed'")]
+        public async Task ClosedFactions(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.ListFactions(Factions.FactionStatus.Closed));
+        }
+
+        [Command("ListDefunctFactions")]
+        [Aliases("DefunctFactions")]
+        [Description("Returns a list of factions with the status 'Closed'")]
+        public async Task DefunctFactions(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.ListFactions(Factions.FactionStatus.Closed));
+        }
+
+        [Command("ListFactions")]
+        [Aliases("Factions")]
+        [Description("Returns a list of factions with the status 'Closed'")]
+        public async Task FactionsList(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.ListAllFactions());
+        }
+
+        [Command("FactionMembers")]
+        [Description("Returns a list of members in a specific faction")]
+        public async Task FactionMembers(CommandContext ctx, [Description("Faction to query")]string Faction)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Factions.ListFactionMembers(Faction));
+
+        }
         #endregion
     }
 }

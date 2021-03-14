@@ -9,19 +9,29 @@ using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using DSharpPlus.CommandsNext;
 using Nine.Commands;
+using System.Linq;
 
 namespace Nine
 {
     public struct CharInfo
     {
+        public int charID { get; set; }
         public string FirstName { get; set; }
+        public string PrevFN { get; set; }
         public string LastName { get; set; }
+        public string PrevLN { get; set; }
         public string Gender { get; set; }
+        public string PrevGender { get; set; }
         public string Unit { get; set; }
+        public string PrevUnit { get; set; }
         public string Faction { get; set; }
+        public string PrevFaction { get; set; }
         public string Url { get; set; }
+        public string PrevUrl { get; set; }
         public string Blurb { get; set; }
+        public string PrevBlurb { get; set; }
         public string Player { get; set; }
+        public string PrevPlayer { get; set; }
         public bool Errored { get; set; }
         public bool Quit { get; set; }
         public bool Correct { get; set; }
@@ -60,6 +70,56 @@ namespace Nine
             }
 
             return result;
+        }
+
+        public static DataTable WhoIs(string Firstname, string Lastname)
+        {
+            string query = $"SELECT * FROM {charTable} WHERE FirstName='{Firstname}'";
+
+            if(Lastname == "")
+            {
+                query += $" AND LastName='{Lastname}'";
+            }
+
+            query += $" OR LastName='{Firstname}'";
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+
+
+            return dt;
+        }
+
+        public static string WhoIs(DataRow row)
+        {
+            string fullname = row["FirstName"].ToString();
+            string pronoun = "";
+            string faction = Factions.GetFactionByID(Convert.ToInt32(row["FactionID"]));
+            string factioninfo = "is a member of";
+
+            if(row["LastName"].ToString() != "")
+            {
+                fullname = $"{row["FirstName"]} {row["LastName"]}";
+            }
+
+            if(faction == "Independent")
+            {
+                factioninfo = $"is an {faction}";
+            }
+            switch(row["Gender"].ToString().ToLower())
+            {
+                case "male":
+                    pronoun = "his";
+                    break;
+                case "female":
+                    pronoun = "her";
+                    break;
+                default:
+                    pronoun = "their";
+                    break;
+            }
+                
+            return $"{fullname} {factioninfo}. {pronoun.First().ToString().ToUpper() + pronoun.Substring(1)} profile can be found at {row["URL"]}";
+            
         }
 
         public static void AddCharacter(CharInfo newCharacter)
@@ -345,7 +405,7 @@ namespace Nine
                 if (!exists)
                 {
                     info.Errored = true;
-                }
+                } 
             }
 
             return info;
@@ -408,7 +468,10 @@ namespace Nine
 
             if (!rsp.TimedOut)
             {
-                info.Blurb = rsp.Result.Content.ToString();
+                if (rsp.Result.Content.ToLower() != "no")
+                {
+                    info.Blurb = rsp.Result.Content.ToString();
+                }
             }
             else
             {
@@ -505,6 +568,7 @@ namespace Nine
                         info.Relist = false;
                         break;
                     case "weapon":
+                    case "unit":
                         await msg.RespondAsync("What is the character's weapon?");
                         info = await SetWeapon(msg, interactivity, info);
                         info.Relist = false;
@@ -535,6 +599,86 @@ namespace Nine
             }
 
             return info;
+        }
+
+        public static string EditChar(CharInfo info)
+        {
+            string msg = "I have successfully updated the following:";
+
+            if (info.Player != info.PrevPlayer)
+            {
+                string query = $"UPDATE {charTable} SET PlayerID='{info.Player}'";
+
+                SqlCommand.ExecuteQuery(query, testing);
+
+                msg += "\nPlayer";
+            }
+
+            if (info.FirstName != info.PrevFN)
+            {
+                string query = $"UPDATE {charTable} SET FirstName='{info.FirstName}'";
+
+                SqlCommand.ExecuteQuery(query, testing);
+
+                msg += "\nFirst Name";
+            }
+
+            if (info.LastName != info.PrevLN)
+            {
+                string query = $"UPDATE {charTable} SET LastName='{info.LastName}'";
+
+                SqlCommand.ExecuteQuery(query, testing);
+
+                msg += "\nLast Name";
+            }
+
+            if (info.Gender != info.PrevGender)
+            {
+                string query = $"UPDATE {charTable} SET Gender='{info.Gender}'";
+
+                SqlCommand.ExecuteQuery(query, testing);
+
+                msg += "\nGender";
+            }
+
+            if (info.Unit != info.PrevUnit)
+            {
+                string query = $"UPDATE {charTable} SET UnitId='{Units.GetUnitID(info.Unit)}'";
+
+                SqlCommand.ExecuteQuery(query, testing);
+
+                Units.ClearOnOpen(info.PrevUnit);
+                msg += "\nWeapon";
+            }
+
+            if (info.Faction != info.PrevFaction)
+            {
+                string query = $"UPDATE {charTable} SET Faction='{info.Faction}'";
+
+                SqlCommand.ExecuteQuery(query, testing);
+
+                msg += "\nFaction";
+            }
+
+            if (info.Url != info.PrevUrl)
+            {
+                string query = $"UPDATE {charTable} SET URL='{info.Url}'";
+
+                SqlCommand.ExecuteQuery(query, testing);
+
+                msg += "\nUrl";
+            }
+
+            if (info.Blurb != info.PrevBlurb)
+            {
+                string query = $"UPDATE {charTable} SET Blurb='{info.Blurb}'";
+
+                SqlCommand.ExecuteQuery(query, testing);
+
+                msg += "\nNotes";
+            }
+
+            return msg;
         }
 
         #region support
@@ -608,6 +752,90 @@ namespace Nine
             }
         }
 
+        public static List<CharInfo> GetListCharacters(string player)
+        {
+            List<CharInfo> chars = new List<CharInfo>();
+
+            if (!player.Contains("<@"))
+            {
+                player = Player.GetPlayer(player, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention);
+            }
+
+            string query = $"SELECT * FROM {charTable} WHERE PlayerID={Player.GetPlayerID(player)}";
+
+            try
+            {
+                DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+
+                foreach (DataRow r in dt.Rows)
+                {
+                    CharInfo info = new CharInfo();
+
+                    info.charID = Convert.ToInt32(r["ID"]);
+                    info.Player = Player.GetPlayerByID(Convert.ToInt32(r["PlayerID"]));
+                    info.PrevPlayer = info.Player;
+                    info.FirstName = r["FirstName"].ToString();
+                    info.PrevFN = info.FirstName;
+                    info.LastName = r["LastName"].ToString();
+                    info.PrevLN = info.LastName;
+                    info.Gender = r["Gender"].ToString();
+                    info.Unit = Units.GetUnitbyID(Convert.ToInt32(r["UnitID"]));
+                    info.PrevUnit = info.Unit;
+                    info.Faction = Factions.GetFactionByID(Convert.ToInt32(r["FactionID"]));
+                    info.PrevFaction = info.Faction;
+                    info.Url = r["URL"].ToString();
+                    info.PrevUrl = info.Url;
+                    info.Blurb = r["Blurb"].ToString();
+
+                    if(info.Blurb == "no")
+                    {
+                        info.Blurb = "";
+                    }
+
+                    info.PrevBlurb = info.Blurb;
+
+                    chars.Add(info);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return chars;
+        }
+
+        public static string ListInfo(List<CharInfo> chars)
+        {
+            string list = "";
+            int x = 1;
+
+            foreach(CharInfo chara in chars)
+            {
+                list += $"\n{x} - {chara.FirstName} {chara.LastName}";
+                x++;
+            }
+
+            return list;
+        }
+
+        public static CharInfo SelectChar(List<CharInfo> chars, string msg)
+        {
+            try
+            {
+                int selection = Convert.ToInt32(msg);
+
+                return chars[selection - 1];
+            } catch 
+            {
+                CharInfo info = new CharInfo()
+                {
+                    Errored = true
+                };
+
+                return info;
+            }
+        }
         #endregion
     }
 }

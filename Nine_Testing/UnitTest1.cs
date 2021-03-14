@@ -16,7 +16,7 @@ namespace Nine_Testing
 
         #region WhoPlays
         [TestCase("Herpa", "Derpa", "I'm sorry, there were no records with that name.", Category = "Character")]
-        [TestCase("Test Person", "The character Test Person is played by Test Player and pilots the Test Unit.", Category = "Character", Ignore = "Need to add records to the charinfo table")]
+        [TestCase("Test","Person", "The character Test Person is played by Test Player and pilots the Test Unit.", Category = "Character", Ignore = "Need to add records to the charinfo table")]
         public void WhoPlays_WithNonExistantCharacter_ShouldReturnMsg(string firstName, string lastName, string expectedResult)
         {
             string result = Characters.WhoPlays(firstName,lastName);

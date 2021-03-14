@@ -188,6 +188,26 @@ namespace Nine.Commands
             return $"Flag has been set to '{MassProduced}' for {Unit}.";
         }
 
+        public static string ListUnits(UnitStatus status, bool MP = false)
+        {
+            string query = $"SELECT UnitName FROM {unitTable} WHERE Status = '{status}'";
+            string outcome = "Units that fall under that category are:";
+
+            if(MP)
+            {
+                query += "AND MassProduced = 'Yes'";
+            }
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+
+            foreach(DataRow row in dt.Rows)
+            {
+                outcome += $"\n {row["UnitName"]}";
+            }
+
+            return outcome;
+        }
+
         #region Support
         public static bool UnitAdded(string Unit)
         {
@@ -223,6 +243,7 @@ namespace Nine.Commands
             DataRow row = QueryUnit(Unit).Rows[0];
             return row["MassProduced"].ToString();
         }
+
         static DataTable QueryUnit(string Unit)
         {
             string query = $"SELECT * FROM {unitTable} WHERE UnitName = '{Unit}'";
@@ -261,6 +282,14 @@ namespace Nine.Commands
             string[] parameters = { "@rsvdFor", "@asgnTo" };
             string[] values = { "", "" };
             SqlCommand.ExecuteQuery_Params(query, parameters, values, testing);
+        }
+
+        public static string GetUnitbyID(int UnitID)
+        {
+            string query = $"SELECT UnitName FROM {unitTable} WHERE ID={UnitID}";
+            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+
+            return dt.Rows[0]["UnitName"].ToString();
         }
         #endregion
     }

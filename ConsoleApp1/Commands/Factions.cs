@@ -8,6 +8,7 @@ namespace Nine.Commands
 {
     public class Factions
     {
+        private static readonly string charTable = "characterinfo";
         private static readonly string factionTable = "factions";
         public static readonly bool testing = false;
 
@@ -120,6 +121,52 @@ namespace Nine.Commands
             return $"The Url for {Faction} has been updated.";
         }
 
+        public static string ListFactions(FactionStatus status)
+        {
+            string query = $"SELECT Faction FROM {factionTable} WHERE FactionStatus = {status}";
+            string output = $"The following factions have the status '{status}'.";
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+
+            foreach(DataRow row in dt.Rows)
+            {
+                output += $"\n{row["Faction"]}";
+            }
+
+            return output;
+        }
+
+        public static string ListAllFactions()
+        {
+            string query = $"SELECT Faction FROM {factionTable}";
+            string output = $"Here is a list of all factions in our records:";
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+
+            foreach (DataRow row in dt.Rows)
+            {
+                output += $"\n{row["Faction"]}";
+            }
+
+            return output;
+        }
+
+        public static string ListFactionMembers(string Faction)
+        {
+            int factionID = GetFactionID(Faction);
+            string query = $"SELECT FirstName, LastName FROM {charTable} WHERE FactionID = {factionID}";
+            string output = $"The following characters are members of {Faction}:";
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+
+            foreach(DataRow row in dt.Rows)
+            {
+                output += $"\n{row["FirstName"]} {row["LastName"]}";
+            }
+
+            return output;
+        }
+
         #region support
         static DataTable QueryFaction(string Faction)
         {
@@ -153,6 +200,15 @@ namespace Nine.Commands
             {
                 return 0;
             }
+        }
+
+        public static string GetFactionByID(int FactionID)
+        {
+            string query = $"SELECT Faction FROM {factionTable} WHERE FactionID ={FactionID}";
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, testing);
+
+            return dt.Rows[0]["Faction"].ToString();
         }
         #endregion
     }
