@@ -166,7 +166,7 @@ namespace Nine.Commands
                     {
                         if (status != "Complete")
                         {
-                            vals += $"/n{Enum.GetValues(typeof(ThreadStatus)).GetValue(x)}";
+                            vals += $"\n{Enum.GetValues(typeof(ThreadStatus)).GetValue(x)}";
                         }
                     }
 
@@ -202,13 +202,7 @@ namespace Nine.Commands
 
                         SqlCommand.ExecuteQuery_Params(updateQuery, NineBot.cfgjson, parameters, values);
 
-                        if (result == "")
-                        {
-                            result = "I have updated the status of the thread.";
-                        } else
-                        {
-                            result += " I have updated the status of the thread.";
-                        }
+                        result += "I have updated the status of the thread.";
                     } else
                     {
                         result = "There is no thread with that identifier. Please try again.";
@@ -450,7 +444,7 @@ namespace Nine.Commands
                         if (CooldownExpired(plyr, pingCooldown, threadNum))
                         {
                             SetCooldown(plyr, pingCooldown, threadNum);
-                            response = $"Reminder to post in {threadID}, {Player.GetPlayer(plyr, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention)}";
+                            response = $"The thread '{threadID}' was not found in the table.";
                         }
                         else
                         {
@@ -591,7 +585,7 @@ namespace Nine.Commands
                     return "Congratulations on completing the thread! I have completed the necessary tasks to close it out on my end.";
                 } else
                 {
-                    return "That thread's already marked complete.";
+                    return "That thread is already marked complete.";
                 }
             } else
             {

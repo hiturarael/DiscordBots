@@ -278,6 +278,72 @@ namespace Nine.Commands
 
             await ctx.RespondAsync(Characters.WhoPlays(FirstName, LastName));
         }
+
+        [Command("PlayerActive")]
+        [Description("Update the player's status to Active")]
+        public async Task PlayerActive(CommandContext ctx, [Description("Player to update")]string player)
+        {
+            await ctx.TriggerTypingAsync();
+
+            if (ctx.Channel.IsPrivate)
+            {
+                await ctx.RespondAsync("Yeah, no. This is not a DM command. Try again in the correct channels.");
+                return;
+            }
+            else
+            {
+                await ctx.RespondAsync(Player.UpdatePlayerStatus(player, Player.PlayerStatus.Active));
+            }
+        }
+
+
+        [Command("PlayerInactive")]
+        [Description("Update the player's status to Active")]
+        public async Task PlayerInactive(CommandContext ctx, [Description("Player to update")] string player)
+        {
+            await ctx.TriggerTypingAsync();
+
+            if (ctx.Channel.IsPrivate)
+            {
+                await ctx.RespondAsync("Yeah, no. This is not a DM command. Try again in the correct channels.");
+                return;
+            }
+            else
+            {
+                await ctx.RespondAsync(Player.UpdatePlayerStatus(player, Player.PlayerStatus.Inactive));
+            }
+        }
+
+        [Command("UpdateMonicker")]
+        [Description("Update the player's status to Active")]
+        public async Task UpdateMonicker(CommandContext ctx, [Description("What is the current monicker in the database?")] string oldName, [Description("What are we changing it to?")] string newName)
+        {
+            await ctx.TriggerTypingAsync();
+
+            if (ctx.Channel.IsPrivate)
+            {
+                await ctx.RespondAsync("Yeah, no. This is not a DM command. Try again in the correct channels.");
+                return;
+            }
+            else
+            {
+                bool run = true;
+                if(Player.GetPlayer(oldName, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention).Replace("<@!","").Replace("<@","").Replace(">","") != ctx.Message.Author.Mention.Replace("<@!", "").Replace("<@", "").Replace(">", ""))
+                {
+                    if(Player.GetAdmin(ctx.Message.Author.Mention,Player.PlayerSearch.Mention) != 1)
+                    {
+                        await ctx.RespondAsync("Only an administrator can alter a different player's nickname. You can only edit your own.");
+                        run = false;
+                    }
+                }
+
+                if (run)
+                {
+                    await ctx.RespondAsync(Player.UpdatePlayerMonicker(oldName, newName));
+                }
+            }
+        }
+
         #endregion
 
         #region Weapons
@@ -572,7 +638,6 @@ namespace Nine.Commands
         [Command("AddCharacter")]
         [Aliases("AddChar")]
         [Description("DM the executing player to obtain information to add a new character to the records.")]
-
         public async Task AddCharacter(CommandContext ctx)
         {
             var interactivity = ctx.Client.GetInteractivity();
@@ -912,7 +977,7 @@ namespace Nine.Commands
 
             chars = await Task.Run(() => Characters.GetListCharacters(Player.GetPlayer(monicker,Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention)));
 
-            string openMsg = $"Here are all the characters registered under your ID, which would you like to update? Type quit at anytime to terminate the command. \nPlease specify with the number corresponding to the character.\n{Characters.ListInfo(chars)}";
+            string openMsg = $"Here are all the characters registered under their ID, which would you like to update? Type quit at anytime to terminate the command. \nPlease specify with the number corresponding to the character.\n{Characters.ListInfo(chars)}";
 
             if (chars.Count > 0)
             {
@@ -1112,7 +1177,6 @@ namespace Nine.Commands
         [Aliases("UpdateFactionLeader", "NewFactionLeader", "NewLeader")]
         [Description("Change the leader of the specified faction")]
         [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
-
         public async Task FactionLeader(CommandContext ctx, [Description("The faction you wish to update")] string Faction, [Description("Leader's First Name")] string FirstName, [Description("Leader's Last Name")] string LastName)
         {
 

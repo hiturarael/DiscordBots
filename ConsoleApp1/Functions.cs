@@ -15,5 +15,10 @@ namespace Nine.Commands
 
             return text;
         }
+
+        public static string CleanString(string str)
+        {
+            return str.Trim('"');
+        }
     }
 }

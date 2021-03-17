@@ -61,12 +61,9 @@ namespace Nine.Commands
                 string updateQuery = $"UPDATE {dictionaryTable} SET Definition='{Definition}' WHERE Term = '{Term}' AND DefinitionNum = {DefNum}";
 
                 SqlCommand.ExecuteQuery(updateQuery, NineBot.cfgjson);
-
-                return "I have updated that term at the specified definition number.";
-            } else
-            {
-                return "That term is not present in the dictionary at this time.";
-            }
+            } 
+            
+            return "I have updated that term at the specified definition number.";
         }
 
         public static string RemoveTermDefinition(string Term, int DefNum, bool deleteAll)

@@ -81,22 +81,38 @@ namespace Nine.Commands
             return response;
         }
 
-        public static string UpdatePlayerStatus(string Player, PlayerStatus status)
+        public static string UpdatePlayerStatus(string player, PlayerStatus status)
         {
-            string query = $"UPDATE {playerTable} SET Status='{status}' WHERE Monicker='{Player}'";
+            string query = $"UPDATE {playerTable} SET Status='{status}' WHERE Monicker='{player}'";
+
+            if(GetPlayerID(player) <1)
+            {
+                return "There is no player by that name in the database.";
+            }
+
+            if(player.Contains("<@") || player.Contains("<@!"))
+            {
+                player = GetPlayer(player, PlayerSearch.Mention, PlayerSearch.Monicker);
+            }
 
             SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
-            return $"{Player} has been updated.";
+            return $"{player} has been updated.";
         }
 
-        public static string UpdatePlayerMonicker(string Player, string Monicker)
+        public static string UpdatePlayerMonicker(string player, string Monicker)
         {
-            string query = $"UPDATE {playerTable} SET Monicker='{Monicker}' WHERE Monicker='{Player}'";
+            string query = $"UPDATE {playerTable} SET Monicker='{Monicker}' WHERE Monicker='{player}'";
 
-            SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+            if (GetPlayerID(player) > 0)
+            {
+                SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
-            return $"{Player} has been updated, please remember to use {Monicker} for them from now on.";
+                return $"{player} has been updated, please remember to use {Monicker} for them from now on.";
+            } else
+            {
+                return "That player is not in the database.";
+            }
         }
 
         #region Support

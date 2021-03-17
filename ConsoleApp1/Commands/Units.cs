@@ -24,14 +24,28 @@ namespace Nine.Commands
         {
             string response;
 
+            Unit = Functions.CleanString(Unit);
+            ReservedFor = Functions.CleanString(ReservedFor);
+            MassProduced = Functions.CleanString(MassProduced);
+
+            if(MassProduced.ToLower() != "yes" && MassProduced.ToLower() != "no")
+            {
+                return "The mass produced flag must be set as yes or no.";
+            }
+
             if(!UnitAdded(Unit))
             {
                 if(Status == UnitStatus.Reserved || Status == UnitStatus.Taken)
                 {
-                    if(MassProduced == "Yes")
+                    if(MassProduced.ToLower() == "yes")
                     {
                         return "A mass produced weapon cannot be reserved or assigned to a player.";
                     }
+                }
+
+                if(Player.GetPlayerID(ReservedFor) < 1)
+                {
+                    return "I'm sorry, there is no player by that name in the database to reserve or assign to them.";
                 }
 
                 string addQuery = $"INSERT INTO {unitTable}(UnitName, AddedBy, Status, MassProduced) VALUES(@Unit, @AddedBy, @Status, @MP)";
