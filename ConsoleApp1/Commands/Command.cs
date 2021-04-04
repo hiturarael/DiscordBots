@@ -545,6 +545,15 @@ namespace Nine.Commands
 
             await ctx.RespondAsync(Units.ListUnits(Units.UnitStatus.Open, true));
         }
+
+        [Command("WhoUses")]
+        [Description("Query who uses the requested mech")]
+        public async Task WhoUses(CommandContext ctx, [Description("Mech Name")]string mech)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Units.QueryMechOwner(mech));
+        }
         #endregion
 
         #region Dictionary
