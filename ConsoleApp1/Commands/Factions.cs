@@ -123,8 +123,8 @@ namespace Nine.Commands
 
         public static string ListFactions(FactionStatus status)
         {
-            string query = $"SELECT Faction FROM {factionTable} WHERE FactionStatus = {status}";
-            string output = $"The following factions have the status '{status}'.";
+            string query = $"SELECT Faction FROM {factionTable} WHERE FactionStatus = '{status}'";
+            string output = $"The following factions have the status '{status}':";
 
             DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 

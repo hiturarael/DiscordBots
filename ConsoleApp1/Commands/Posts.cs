@@ -444,7 +444,7 @@ namespace Nine.Commands
                         if (CooldownExpired(plyr, pingCooldown, threadNum))
                         {
                             SetCooldown(plyr, pingCooldown, threadNum);
-                            response = $"The thread '{threadID}' was not found in the table.";
+                            response = $"Reminder to post in {threadID}, {Player.GetPlayer(plyr, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention)}";
                         }
                         else
                         {
@@ -607,7 +607,7 @@ namespace Nine.Commands
             //else get latest record player, post position + 1            
             if (dt.Rows.Count > 0)
             {
-                DataRow row = dt.Rows[0];
+                DataRow row = dt.Rows[dt.Rows.Count-1];
                 lastPos = Convert.ToInt32(row["PostPosition"].ToString());
                 lastPlayer = row["Player"].ToString();
             }

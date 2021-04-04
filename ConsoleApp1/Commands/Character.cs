@@ -321,17 +321,21 @@ namespace Nine
             {
                 bool added = Units.UnitAdded(msg);
 
-                if (added)
+                if (!added)
                 {
-                    Units.UnitStatus status = Units.GetStatus(msg);
+                    Units.AddUnit(msg, info.Player, Units.UnitStatus.Taken, info.Player);
+                }
+               
+                Units.UnitStatus status = Units.GetStatus(msg);
+                string reservedForMention = Player.GetPlayer(Units.GetReserved(msg), Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention);
 
-                    switch(status)
+                switch (status)
                     {
                         case Units.UnitStatus.Banned:
                             info.Errored = true;
                             break;
                         case Units.UnitStatus.Reserved:
-                            if(Units.GetReserved(msg) == rsvd)
+                            if(reservedForMention == rsvd)
                             {
                                 //clear reserved
                                 //fill assigned to
@@ -344,7 +348,7 @@ namespace Nine
                             }
                             break;
                         case Units.UnitStatus.Taken:
-                            if (Player.GetPlayer(Units.GetAssignee(msg), Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention) == rsvd)
+                            if (reservedForMention == rsvd)
                             {
                                 //assign info.unit
                                 info.Unit = msg;
@@ -358,11 +362,7 @@ namespace Nine
                             info.Unit = msg;
                             break;
                     }
-                }
-                else
-                {
-                    info.Errored = true;                    
-                }
+                
             }
 
             return info;

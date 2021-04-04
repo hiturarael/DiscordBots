@@ -182,7 +182,7 @@ namespace Nine.Commands
             {
                 if(MassProduced == "Yes")
                 {
-                    query = $"UPDATE {unitTable} SET MassProduced='Yes' WHERE UnitName = '{Unit}''";
+                    query = $"UPDATE {unitTable} SET MassProduced='Yes' WHERE UnitName = '{Unit}'";
                 } else
                 {
                     return "That unit is already flagged as not Mass Produced";
@@ -194,7 +194,7 @@ namespace Nine.Commands
                     return "That unit is already flagged as Mass Produced";
                 } else
                 {
-                    query = $"UPDATE {unitTable} SET MassProduced='No' WHERE UnitName = '{Unit}''";
+                    query = $"UPDATE {unitTable} SET MassProduced='No' WHERE UnitName = '{Unit}'";
                 }
             }
 

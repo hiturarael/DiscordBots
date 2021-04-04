@@ -24,6 +24,7 @@ namespace Nine
     {
         public readonly EventId BotEventId = new EventId(9, "Nine");
         public readonly static string config = "localconfig.json";
+        //public readonly static string config = "liveconfig.json";
 
         public DiscordClient Client { get; set; }
         public CommandsNextExtension Commands { get; set; }

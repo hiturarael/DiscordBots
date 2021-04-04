@@ -84,8 +84,12 @@ namespace Nine.Commands
         public static string UpdatePlayerStatus(string player, PlayerStatus status)
         {
             string query = $"UPDATE {playerTable} SET Status='{status}' WHERE Monicker='{player}'";
+            if(!player.Contains("<@!"))
+            {
+                player = GetPlayer(player, PlayerSearch.Monicker, PlayerSearch.Mention);
+            }
 
-            if(GetPlayerID(player) <1)
+            if(GetPlayerID(player) < 1)
             {
                 return "There is no player by that name in the database.";
             }
@@ -237,6 +241,11 @@ namespace Nine.Commands
 
         public static int GetPlayerID(string playerMention)
         {
+            if(!playerMention.Contains("<@"))
+            {
+                playerMention = GetPlayer(playerMention, PlayerSearch.Monicker, PlayerSearch.Mention);
+            }
+
             playerMention = playerMention.Replace("<@!", "").Replace("<@", "").Replace(">", "");
             string query = $"SELECT ID FROM {playerTable} WHERE Player LIKE'%{playerMention}%'";
 
