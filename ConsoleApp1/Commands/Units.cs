@@ -240,6 +240,40 @@ namespace Nine.Commands
             return outcome;
         }
 
+        public static string QueryMechOwner(string Mech)
+        {
+            DataTable dt = QueryUnit(Mech);
+
+            if (dt.Rows.Count > 0)
+            {
+                DataRow row = dt.Rows[0];
+                UnitStatus status = GetStatus(Mech);
+                string mp = GetMassProduced(Mech);
+
+                if(status == UnitStatus.Banned)
+                {
+                    return "That unit is banned, sooo... no one.";
+                } else if(mp == "Yes")
+                {
+                    return "That unit is a mass produced, I don't keep track of who uses them.";
+                }
+                else if (row["ReservedFor"].ToString() != "")
+                {
+                    return $"The unit is utilized by {row["ReservedFor"].ToString()}";
+                }
+                else if (row["AssignedTo"].ToString() != "")
+                {
+                    return $"The unit is utilized by { Player.GetPlayer(row["AssignedTo"].ToString(), Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker)}";
+                }
+                else
+                {
+                    return "That unit is not in use at this time.";
+                }
+            } else
+            {
+                return "That unit is not in the database.";
+            }
+        }
         #region Support
         public static bool UnitAdded(string Unit)
         {
