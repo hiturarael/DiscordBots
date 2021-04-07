@@ -36,6 +36,41 @@ namespace Nine.Commands
             }
         }
 
+        [Command("Dingus")]
+        [Hidden]
+        public async Task Dingus(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            if (!ctx.Channel.IsPrivate)
+            {
+                var emoji = DiscordEmoji.FromName(ctx.Client, ":smug:");
+
+                await ctx.RespondAsync($"Yes, Yes you are {ctx.User.Mention} {emoji}");
+            } else
+            {
+                await ctx.RespondAsync($"Yes, Yes you are.");
+            }
+        }
+
+        [Command("Boobs")]
+        [Aliases("Boob", "Breast", "Butts","Titties","Ass","Dick")]
+        [Hidden]
+        public async Task Lewd(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            if (!ctx.Channel.IsPrivate)
+            {
+                var emoji = DiscordEmoji.FromName(ctx.Client, ":lewd:");
+
+                await ctx.RespondAsync($"{emoji}");
+            } else
+            {
+                await ctx.RespondAsync($"Lewd.");
+            }
+        }
+
         #endregion
 
         #region posts
@@ -544,6 +579,15 @@ namespace Nine.Commands
             await ctx.TriggerTypingAsync();
 
             await ctx.RespondAsync(Units.ListUnits(Units.UnitStatus.Open, true));
+        }
+
+        [Command("UpdateUnitName")]
+        [Aliases("RenameUnit", "RenameWeapon", "UpdateWeaponName", "RenameMech")]
+        [Description("Rename a unit.")]
+        public async Task RenameUnit(CommandContext ctx, [Description("Unit current name")] string unitName, [Description("New Name")] string newName)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Units.EditUnitName(unitName, newName));
         }
         #endregion
 

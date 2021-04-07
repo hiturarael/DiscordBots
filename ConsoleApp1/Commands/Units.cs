@@ -103,6 +103,24 @@ namespace Nine.Commands
             return response;
         }
 
+        public static string EditUnitName(string UnitName, string updatedName)
+        {
+            if(UnitAdded(UnitName))
+            {
+                //update name
+               string query =  $"UPDATE {unitTable} SET UnitName = @unitName WHERE UnitName='{UnitName}'";
+                string[] parameters = { "@unitName" };
+                string[] values = { updatedName };
+
+                SqlCommand.ExecuteQuery_Params(query, NineBot.cfgjson, parameters, values);
+
+                return "The name has been updated.";
+            } else
+            {
+                return "I couldn't find the unit to update.";
+            }
+        }
+
         public static string UpdateUnitStatus(string Unit, UnitStatus UnitStatus, string ReservedFor = "")
         {
             string response;
