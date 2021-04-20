@@ -921,10 +921,23 @@ namespace Nine.Commands
 
             info = await Characters.SetPlayer(msg, interactivity, info);
 
+            if(!info.Errored && !info.Quit)
+            {
+                await msg.RespondAsync("Is the character a PC, Support PC, or an NPC? Please note; Support PCs are player controlled npcs while NPCs are story team controlled.");
+            }else if (info.Quit)
+            {
+                await msg.RespondAsync("Understood. Terminating command.");
+                return;
+            } else if(info.Errored)
+            {
+                return;
+            }
+
+            info = await Characters.SetCharaType(msg, interactivity, info);
 
             if (!info.Errored && !info.Quit)
             {
-                await msg.RespondAsync("What is the character's assigned Weapon?");
+                await msg.RespondAsync("What is the character's assigned Weapon? If they are not a pilot, please enter 'none'.");
             }
             else if (info.Quit)
             {
@@ -956,7 +969,7 @@ namespace Nine.Commands
 
             if (!info.Errored && !info.Quit)
             {
-                await msg.RespondAsync("What is the URL of the character's profile?");
+                await msg.RespondAsync("What is the URL of the character's profile? For support and non player characters you may link the direct post.");
             }
             else if (info.Quit)
             {
@@ -990,7 +1003,7 @@ namespace Nine.Commands
             {
                 if (!info.Errored && !info.Quit)
                 {
-                    await msg.RespondAsync($"Does this look correct?\nPlayer:{Player.GetPlayer(info.Player, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker)}\nFirst Name: {info.FirstName}\nLast Name: {info.LastName}\nGender: {info.Gender}\nWeapon: {info.Unit}\nFaction: {info.Faction}\nProfile: {info.Url}");
+                    await msg.RespondAsync($"Does this look correct?\nPlayer:{Player.GetPlayer(info.Player, Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker)}\nFirst Name: {info.FirstName}\nLast Name: {info.LastName}\nGender: {info.Gender}\nWeapon: {info.Unit}\nFaction: {info.Faction}\nProfile: {info.Url}\nCharacter Type: {info.type}");
                 }
                 else if (info.Quit)
                 {
@@ -1017,7 +1030,7 @@ namespace Nine.Commands
                 {
                     if (!info.Errored && !info.Quit)
                     {
-                        await msg.RespondAsync("What do you need to edit? Select from the list:\nPlayer\nFirst Name\nLast Name\nGender\nWeapon\nFaction\nURL\nBlurb");
+                        await msg.RespondAsync("What do you need to edit? Select from the list:\nPlayer\nFirst Name\nLast Name\nGender\nWeapon\nFaction\nURL\nBlurb\nCharacter Type");
 
                         info = await Characters.GetCorrectInfo(msg, interactivity, info);
 

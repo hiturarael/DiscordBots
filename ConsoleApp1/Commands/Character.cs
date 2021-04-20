@@ -36,6 +36,10 @@ namespace Nine
         public bool Quit { get; set; }
         public bool Correct { get; set; }
         public bool Relist { get; set; }
+        public CharStatus status { get; set; }
+        public CharType type { get; set; }
+        public CharStatus prevstatus { get; set; }
+        public CharType prevtype { get; set; }
     }
 
     public enum CharStatus
@@ -142,11 +146,11 @@ namespace Nine
             int unitID = Units.GetUnitID(newCharacter.Unit);
             int factionID = Factions.GetFactionID(newCharacter.Faction);
 
-            string query = $"INSERT INTO {charTable}(PlayerID, FirstName, LastName,Gender,UnitID,FactionID,URL,Blurb) VALUES(@PlayerID, @FirstName, @LastName, @Gender, @UnitID, @FactionID, @URL, @Blurb)";
+            string query = $"INSERT INTO {charTable}(PlayerID, FirstName, LastName,Gender,UnitID,FactionID,URL,Blurb,CharType,Status) VALUES(@PlayerID, @FirstName, @LastName, @Gender, @UnitID, @FactionID, @URL, @Blurb, @Type, @Status)";
 
-            string[] Parameters = { "@PlayerID", "@FirstName", "@LastName", "@Gender", "@UnitID", "@FactionID", "@URL", "@Blurb" };
+            string[] Parameters = { "@PlayerID", "@FirstName", "@LastName", "@Gender", "@UnitID", "@FactionID", "@URL", "@Blurb", "@Type", "@Status" };
 
-            string[] Values = { Player.GetPlayerID(newCharacter.Player).ToString(), newCharacter.FirstName, newCharacter.LastName, newCharacter.Gender, unitID.ToString(), factionID.ToString(), newCharacter.Url, newCharacter.Blurb };
+            string[] Values = { Player.GetPlayerID(newCharacter.Player).ToString(), newCharacter.FirstName, newCharacter.LastName, newCharacter.Gender, unitID.ToString(), factionID.ToString(), newCharacter.Url, newCharacter.Blurb, newCharacter.type.ToString(), newCharacter.status.ToString() };
 
             SqlCommand.ExecuteQuery_Params(query, NineBot.cfgjson, Parameters, Values);
 
@@ -397,30 +401,33 @@ namespace Nine
             }
             else
             {
-                bool added = Units.UnitAdded(msg);
-
-                if (!added)
+                if (msg != "none")
                 {
-                    Units.AddUnit(msg, info.Player, Units.UnitStatus.Taken, info.Player);
-                }
-               
-                Units.UnitStatus status = Units.GetStatus(msg);
-                string reservedForMention = Player.GetPlayer(Units.GetReserved(msg), Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention);
+                    bool added = Units.UnitAdded(msg);
 
-                switch (status)
+                    if (!added)
+                    {
+                        Units.AddUnit(msg, info.Player, Units.UnitStatus.Taken, info.Player);
+                    }
+
+                    Units.UnitStatus status = Units.GetStatus(msg);
+                    string reservedForMention = Player.GetPlayer(Units.GetReserved(msg), Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention);
+
+                    switch (status)
                     {
                         case Units.UnitStatus.Banned:
                             info.Errored = true;
                             break;
                         case Units.UnitStatus.Reserved:
-                            if(reservedForMention == rsvd)
+                            if (reservedForMention == rsvd)
                             {
                                 //clear reserved
                                 //fill assigned to
-                                Units.SetAssigneeFromReserved(msg, rsvd);                       
+                                Units.SetAssigneeFromReserved(msg, rsvd);
                                 //assign info.unit
                                 info.Unit = msg;
-                            } else
+                            }
+                            else
                             {
                                 info.Errored = true;
                             }
@@ -440,7 +447,48 @@ namespace Nine
                             info.Unit = msg;
                             break;
                     }
-                
+                } else
+                {
+                    info.Unit = "";
+                }                
+            }
+
+            return info;
+        }
+
+        public static CharInfo CharType(CharInfo info, string msg)
+        {
+            switch(msg.ToLower())
+            {
+                case "pc":
+                    info.type = Nine.CharType.PC;
+                    break;
+                case "npc":
+                    info.type = Nine.CharType.NPC;
+                    break;
+                case "support":
+                case "spc":
+                    info.type = Nine.CharType.Support;
+                    break;
+                default:
+                    info.type = Nine.CharType.PC;
+                    break;
+            }
+
+            return info;
+        }
+
+        public static async Task<CharInfo> SetCharaType(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
+        {
+            var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Is the character a PC, Support PC, or an NPC?") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
+
+            if(!rsp.TimedOut)
+            {
+                info = CharType(info, rsp.Result.Content);
+            } else
+            {
+                info.Errored = true;
+                await msg.RespondAsync("I see you're busy now. Try again later then.");
             }
 
             return info;
@@ -529,10 +577,9 @@ namespace Nine
 
                 info.Url = msg;
 
-                if ((!info.Url.Contains("http://")
-                    && !info.Url.Contains("https://"))
+                if ((!info.Url.Contains("http://") && !info.Url.Contains("https://"))
                     || !info.Url.Contains("srwignition.com")
-                    || info.Url.Contains("#post"))
+                    || (info.Url.Contains("#post") && info.type == Nine.CharType.PC))
                 {
                     info.Errored = true;
                 }
@@ -647,7 +694,7 @@ namespace Nine
                         break;
                     case "weapon":
                     case "unit":
-                        await msg.RespondAsync("What is the character's weapon?");
+                        await msg.RespondAsync("What is the character's assigned Weapon? If they are not a pilot, please enter 'none'.");
                         info = await SetWeapon(msg, interactivity, info);
                         info.Relist = false;
                         break;
@@ -657,7 +704,7 @@ namespace Nine
                         info.Relist = false;
                         break;
                     case "url":
-                        await msg.RespondAsync("What is the character's profile url?");
+                        await msg.RespondAsync("What is the URL of the character's profile? For support and non player characters you may link the direct post.");
                         info = await SetURL(msg, interactivity, info);
                         info.Relist = false;
                         break;
@@ -669,6 +716,11 @@ namespace Nine
                     case "quit":
                         info.Relist = false;
                         info.Quit = true;
+                        break;
+                    case "character type":
+                        await msg.RespondAsync("Is the character a PC, Support PC, or an NPC? Please note; Support PCs are player controlled npcs while NPCs are story team controlled.");
+                        info = await SetCharaType(msg, interactivity, info);
+                        info.Relist = false;
                         break;
                     default:
                         info.Relist = true;
