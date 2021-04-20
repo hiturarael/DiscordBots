@@ -17,8 +17,16 @@ namespace Nine.Commands
             Reserved
         }
 
+        public enum AliasType
+        {
+            Variant,
+            Alias,
+            Upgrade
+        }
+
         public static readonly bool testing = false;
         private static readonly string unitTable = "unitlisting";
+        private static readonly string aliasTable = "unitAlias";
 
         public static string AddUnit(string Unit, string AddedBy, UnitStatus Status, string ReservedFor = "", string MassProduced = "No")
         {
@@ -202,10 +210,10 @@ namespace Nine.Commands
             return $"Flag has been set to '{MassProduced}' for {Unit}.";
         }
 
-        public static string ListUnits(UnitStatus status, bool MP = false)
+        public static List<string> ListUnits(UnitStatus status, bool MP = false)
         {
-            string query = $"SELECT UnitName FROM {unitTable} WHERE Status = '{status}'";
-            string outcome = "Units that fall under that category are:";
+            string query = $"SELECT ID, UnitName FROM {unitTable} WHERE Status = '{status}'";
+            List<string> outcome = new List<string>();
 
             if(MP)
             {
@@ -216,10 +224,51 @@ namespace Nine.Commands
 
             foreach(DataRow row in dt.Rows)
             {
-                outcome += $"\n {row["UnitName"]}";
+                string aliasQuery = $"SELECT UnitName, Type FROM {aliasTable} WHERE parentID = {row["ID"]} ORDER BY Type DESC";
+               DataTable dt2 = SqlCommand.ExecuteQuery(aliasQuery, NineBot.cfgjson);
+                outcome.Add($"\n{row["UnitName"]}");
+
+                foreach(DataRow aliasRow in dt2.Rows)
+                {
+                    outcome.Add($"\n\t*{aliasRow["UnitName"]} ({aliasRow["Type"]})");
+                }
             }
 
             return outcome;
+        }
+
+        public static string AddAlias(string unitName, string aliasName, AliasType type)
+        {
+            int unitId = GetUnitID(unitName);
+            string unitQuery = $"INSERT INTO {aliasTable}(ParentID, UnitName, Type) VALUES(@parent, @unit, @type)";
+            //$"INSERT INTO {unitTable}(UnitName, AddedBy, Status, MassProduced) VALUES(@Unit, @AddedBy, @Status, @MP)";
+            if (unitId == 0)
+            {
+                unitId = GetAliasID(unitName);
+
+                if (unitId == 0)
+                {
+                    //AddUnit(unitName, "", UnitStatus.Open);
+                    //unitId = GetUnitID(unitName);
+                } else
+                {
+                    unitId = GetAliasParent(unitId);
+                }
+            }
+
+            if (unitId > 0)
+            {
+                string[] parameters = { "@parent", "@unit", "@type" };
+                string[] parameterValues = { unitId.ToString(), aliasName, type.ToString() };
+
+                SqlCommand.ExecuteQuery_Params(unitQuery, NineBot.cfgjson, parameters, parameterValues);
+
+                return $"I have added {aliasName} as a {type} of {unitName}";
+            }
+            else
+            {
+                return "The base unit was not in the database and I was unable to add it.";
+            }
         }
 
         #region Support
@@ -231,6 +280,40 @@ namespace Nine.Commands
             } else
             {
                 return false;
+            }
+        }
+
+        public static int GetAliasID(string unit)
+        {
+            string query = $"SELECT * FROM {aliasTable} where UnitName = '{unit}'";
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            if (dt.Rows.Count > 0)
+            {
+                DataRow row = dt.Rows[0];
+
+                return (int)row["ID"];
+            } else
+            {
+                return 0;
+            }
+        }
+
+        public static int GetAliasParent(int aliasID)
+        {
+            string query = $"SELECT * FROM {aliasTable} where ID = {aliasID}";
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            if (dt.Rows.Count > 0)
+            {
+                DataRow row = dt.Rows[0];
+
+                return (int)row["ParentID"];
+            } else
+            {
+                return 0;
             }
         }
 
@@ -260,7 +343,7 @@ namespace Nine.Commands
 
         static DataTable QueryUnit(string Unit)
         {
-            string query = $"SELECT * FROM {unitTable} WHERE UnitName = '{Unit}'";
+            string query = $"SELECT * From {unitTable} Left JOIN {aliasTable} on {aliasTable}.ParentID = {unitTable}.ID where {unitTable}.unitname = '{Unit}' OR {aliasTable}.UnitName = '{Unit}'";
 
             DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 

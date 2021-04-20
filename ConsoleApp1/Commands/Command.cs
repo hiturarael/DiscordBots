@@ -503,7 +503,32 @@ namespace Nine.Commands
         {
             await ctx.TriggerTypingAsync();
 
-            await ctx.RespondAsync(Units.ListUnits(Units.UnitStatus.Banned));
+            List<string> units = Units.ListUnits(Units.UnitStatus.Banned);
+
+            List<string> pgs = new List<string>();
+            string tmp = "";
+            string tmp2 = "";
+            foreach(string unit in units)
+            {
+                tmp2 += unit;
+
+                if(unit.Length < 2000)
+                {
+                    tmp = tmp2;
+                } else
+                {
+                    pgs.Add(tmp);
+                    tmp2 = "";
+                    tmp = "";
+                }
+            }
+
+            await ctx.RespondAsync("Units that fall under that category are:");
+
+            foreach(string page in pgs)
+            {
+                await ctx.RespondAsync(page);
+            }
         }
 
         [Command("OpenUnits")]
@@ -513,7 +538,33 @@ namespace Nine.Commands
         {
             await ctx.TriggerTypingAsync();
 
-            await ctx.RespondAsync(Units.ListUnits(Units.UnitStatus.Open));
+            List<string> units = Units.ListUnits(Units.UnitStatus.Open);
+
+            List<string> pgs = new List<string>();
+            string tmp = "";
+            string tmp2 = "";
+            foreach (string unit in units)
+            {
+                tmp2 += unit;
+
+                if (unit.Length < 2000)
+                {
+                    tmp = tmp2;
+                }
+                else
+                {
+                    pgs.Add(tmp);
+                    tmp2 = "";
+                    tmp = "";
+                }
+            }
+
+            await ctx.RespondAsync("Units that fall under that category are:");
+
+            foreach (string page in pgs)
+            {
+                await ctx.RespondAsync(page);
+            }
         }
 
         [Command("TakenUnits")]
@@ -523,7 +574,33 @@ namespace Nine.Commands
         {
             await ctx.TriggerTypingAsync();
 
-            await ctx.RespondAsync(Units.ListUnits(Units.UnitStatus.Taken));
+            List<string> units = Units.ListUnits(Units.UnitStatus.Taken);
+
+            List<string> pgs = new List<string>();
+            string tmp = "";
+            string tmp2 = "";
+            foreach (string unit in units)
+            {
+                tmp2 += unit;
+
+                if (unit.Length < 2000)
+                {
+                    tmp = tmp2;
+                }
+                else
+                {
+                    pgs.Add(tmp);
+                    tmp2 = "";
+                    tmp = "";
+                }
+            }
+
+            await ctx.RespondAsync("Units that fall under that category are:");
+
+            foreach (string page in pgs)
+            {
+                await ctx.RespondAsync(page);
+            }
         }
 
         [Command("ReservedUnits")]
@@ -533,7 +610,35 @@ namespace Nine.Commands
         {
             await ctx.TriggerTypingAsync();
 
-            await ctx.RespondAsync(Units.ListUnits(Units.UnitStatus.Reserved));
+            List<string> units = Units.ListUnits(Units.UnitStatus.Reserved);
+
+            List<string> pgs = new List<string>();
+            string tmp = "";
+            string tmp2 = "";
+            foreach (string unit in units)
+            {
+                tmp2 += unit;
+
+                if (unit.Length < 2000)
+                {
+                    tmp = tmp2;
+                }
+                else
+                {
+                    pgs.Add(tmp);
+                    tmp2 = "";
+                    tmp = "";
+                }
+            }
+
+            pgs.Add(tmp);
+
+            await ctx.RespondAsync("Units that fall under that category are:");
+
+            foreach (string page in pgs)
+            {
+                await ctx.RespondAsync(page);
+            }
         }
 
         [Command("MPUnits")]
@@ -543,7 +648,60 @@ namespace Nine.Commands
         {
             await ctx.TriggerTypingAsync();
 
-            await ctx.RespondAsync(Units.ListUnits(Units.UnitStatus.Open, true));
+            List<string> units = Units.ListUnits(Units.UnitStatus.Open, true);
+
+            List<string> pgs = new List<string>();
+            string tmp = "";
+            string tmp2 = "";
+            foreach (string unit in units)
+            {
+                tmp2 += unit;
+
+                if (unit.Length < 2000)
+                {
+                    tmp = tmp2;
+                }
+                else
+                {
+                    pgs.Add(tmp);
+                    tmp2 = "";
+                    tmp = "";
+                }
+            }
+
+            await ctx.RespondAsync("Units that fall under that category are:");
+
+            foreach (string page in pgs)
+            {
+                await ctx.RespondAsync(page);
+            }
+        }
+
+        [Command("AddAlias")]
+        [Description("Add an alias to a weapon.")]
+        public async Task AddAlias(CommandContext ctx, [Description("Unit that will get the alias")]string unitName, [Description("Alias for the unit")]string alias)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Units.AddAlias(unitName, alias, Units.AliasType.Alias));
+        }
+
+        [Command("AddVariant")]
+        [Description("Add a variant alias to a weapon.")]
+        public async Task AddVariant(CommandContext ctx, [Description("Unit that will get the alias")] string unitName, [Description("Alias for the unit")] string alias)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Units.AddAlias(unitName, alias, Units.AliasType.Variant));
+        }
+
+        [Command("AddUpgrade")]
+        [Description("Add an upgrade alias to a weapon.")]
+        public async Task AddUpgrade(CommandContext ctx, [Description("Unit that will get the alias")] string unitName, [Description("Alias for the unit")] string alias)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Units.AddAlias(unitName, alias, Units.AliasType.Upgrade));
         }
         #endregion
 
