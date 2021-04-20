@@ -111,6 +111,24 @@ namespace Nine.Commands
             return response;
         }
 
+        public static string EditUnitName(string UnitName, string updatedName)
+        {
+            if(UnitAdded(UnitName))
+            {
+                //update name
+               string query =  $"UPDATE {unitTable} SET UnitName = @unitName WHERE UnitName='{UnitName}'";
+                string[] parameters = { "@unitName" };
+                string[] values = { updatedName };
+
+                SqlCommand.ExecuteQuery_Params(query, NineBot.cfgjson, parameters, values);
+
+                return "The name has been updated.";
+            } else
+            {
+                return "I couldn't find the unit to update.";
+            }
+        }
+
         public static string UpdateUnitStatus(string Unit, UnitStatus UnitStatus, string ReservedFor = "")
         {
             string response;
@@ -268,6 +286,41 @@ namespace Nine.Commands
             else
             {
                 return "The base unit was not in the database and I was unable to add it.";
+            }
+        }
+
+        public static string QueryMechOwner(string Mech)
+        {
+            DataTable dt = QueryUnit(Mech);
+
+            if (dt.Rows.Count > 0)
+            {
+                DataRow row = dt.Rows[0];
+                UnitStatus status = GetStatus(Mech);
+                string mp = GetMassProduced(Mech);
+
+                if(status == UnitStatus.Banned)
+                {
+                    return "That unit is banned, sooo... no one.";
+                } else if(mp == "Yes")
+                {
+                    return "That unit is a mass produced, I don't keep track of who uses them.";
+                }
+                else if (row["ReservedFor"].ToString() != "")
+                {
+                    return $"The unit is utilized by {row["ReservedFor"]}";
+                }
+                else if (row["AssignedTo"].ToString() != "")
+                {
+                    return $"The unit is utilized by { Player.GetPlayer(row["AssignedTo"].ToString(), Player.PlayerSearch.Mention, Player.PlayerSearch.Monicker)}";
+                }
+                else
+                {
+                    return "That unit is not in use at this time.";
+                }
+            } else
+            {
+                return "That unit is not in the database.";
             }
         }
 
