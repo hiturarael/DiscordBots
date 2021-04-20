@@ -439,7 +439,13 @@ namespace Nine.Commands
             string query = $"SELECT UnitName FROM {unitTable} WHERE ID={UnitID}";
             DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
-            return dt.Rows[0]["UnitName"].ToString();
+            if (dt.Rows.Count > 0)
+            {
+                return dt.Rows[0]["UnitName"].ToString();
+            } else
+            {
+                return "";
+            }
         }
         #endregion
     }

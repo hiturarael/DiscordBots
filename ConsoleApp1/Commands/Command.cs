@@ -17,7 +17,7 @@ namespace Nine.Commands
         #region Basic
         [Command("ping")]
         [Description("Ping command, get snark then response time.")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task Ping(CommandContext ctx)
         {
             //triger typing indicator
@@ -150,7 +150,7 @@ namespace Nine.Commands
         }
 
         [Command("AddToPostOrder")]
-        [Aliases("AddToOrder")]
+        [Aliases("AddToOrder", "AddToThread","AddToPost")]
         [Description("Add a user to the post order at the specified position.")]
         public async Task AddToPostOrder(CommandContext ctx, [Description("Thread Title or Alias")] string Thread, [Description("User added to order By Monicker or @")] string User)
         {
@@ -275,7 +275,7 @@ namespace Nine.Commands
         [Command("ResetPostOrder")]
         [Aliases("ResetOrder")]
         [Description("Clears the post order to be re-added")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task ResetPostOrder(CommandContext ctx, [Description("Thread name or alias")] string Thread)
         {
             await ctx.TriggerTypingAsync();
@@ -403,7 +403,7 @@ namespace Nine.Commands
         [Command("AddBannedUnit")]
         [Aliases("AddBannedWeapon", "AddBanned")]
         [Description("Add a banned unit to the database")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task AddBannedUnit(CommandContext ctx, [Description("Unit Name")] string Unit, [Description("Is the unit mass produced? (Yes/No)")] string MassProduced = "No")
         {
             string user = "";
@@ -456,7 +456,7 @@ namespace Nine.Commands
         [Command("OpenUnit")]
         [Aliases("OpenWeapon", "Unban", "UnReserve")]
         [Description("Alter the status of a unit to 'Open'")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task OpenUnit(CommandContext ctx, [Description("Unit Name")] string Unit)
         {
             await ctx.TriggerTypingAsync();
@@ -485,7 +485,7 @@ namespace Nine.Commands
         [Command("BanUnit")]
         [Aliases("BanWeapon", "Ban")]
         [Description("Alter the status of a unit to 'Banned'")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task BanUnit(CommandContext ctx, [Description("Unit Name")] string Unit)
         {
             await ctx.TriggerTypingAsync();
@@ -814,7 +814,7 @@ namespace Nine.Commands
         [Command("RemoveTermDefinition")]
         [Aliases("RemoveDefinitionFromDictionary", "DeleteTermDefinition", "DeleteDefinitionFromDictionary")]
         [Description("Deletes a term's definition.")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task DeleteDefinition(CommandContext ctx, [Description("Search Term")] string Term, [Description("Definition Number")] int DefNum)
         {
             await ctx.TriggerTypingAsync();
@@ -825,7 +825,7 @@ namespace Nine.Commands
         [Command("RemoveTerm")]
         [Aliases("RemoveFromDictionary", "DeleteTerm", "DeleteFromDictionary")]
         [Description("Deletes a term.")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task DeleteDefinition(CommandContext ctx, [Description("Search Term")] string Term)
         {
             await ctx.TriggerTypingAsync();
@@ -1070,6 +1070,230 @@ namespace Nine.Commands
             await ctx.RespondAsync(Characters.PlayerChars(player));
         }
 
+        [Command("FlagPC")]
+        [Description("Sets a specified character to PC Status")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
+        public async Task FlagPC(CommandContext ctx, string FirstName, string LastName)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.SetCharType(CharType.PC, FirstName, LastName));
+        }
+        [Command("FlagNPC")]
+        [Description("Sets a specified character to PC Status")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
+        public async Task FlagNPC(CommandContext ctx, string FirstName, string LastName)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.SetCharType(CharType.NPC, FirstName, LastName));
+        }
+        [Command("FlagSupport")]
+        [Description("Sets a specified character to PC Status")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
+        public async Task FlagSupport(CommandContext ctx, string FirstName, string LastName)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.SetCharType(CharType.Support, FirstName, LastName));
+        }
+
+        [Command("FlagActiveChar")]
+        [Description("Sets a specified character to PC Status")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
+        public async Task FlagActiveChar(CommandContext ctx, string FirstName, string LastName)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.SetCharActivity(CharStatus.Active, FirstName, LastName));
+        }
+        [Command("FlagInactiveChar")]
+        [Description("Sets a specified character to PC Status")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
+        public async Task FlagInactiveChar(CommandContext ctx, string FirstName, string LastName)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.SetCharActivity(CharStatus.Inactive, FirstName, LastName));
+        }
+        [Command("FlagDeadChar")]
+        [Description("Sets a specified character to PC Status")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
+        public async Task FlagDeadChar(CommandContext ctx, string FirstName, string LastName)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.SetCharActivity(CharStatus.Dead, FirstName, LastName));
+        }
+
+        [Command("SetPC")]
+        [Description("Sets specified character executor to PC status")]
+        public async Task SetPC(CommandContext ctx)
+        {
+            var interactivity = ctx.Client.GetInteractivity();
+            List<CharInfo> chars = new List<CharInfo>();
+            CharInfo info = new CharInfo();
+            var msg = ctx.Message;
+            bool loop = true;
+
+            chars = await Task.Run(() => Characters.GetListCharacters(ctx.Message.Author.Mention));
+
+            string openMsg = $"Please select the character you would like to set as a PC. \n0 - Quit{Characters.ListInfo(chars)}";
+
+            if(chars.Count > 0)
+            {
+                while(loop)
+                {
+                    if (ctx.Channel.IsPrivate)
+                    {
+                        msg = await ctx.RespondAsync(openMsg);
+                    }
+                    else
+                    {
+                        msg = await ctx.Member.SendMessageAsync(openMsg);
+                    }
+
+                    var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Please select the character you would like to set as a PC.") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
+
+                    
+                    if (!rsp.TimedOut)
+                    {
+                        if (rsp.Result.Content.ToString() != "0")
+                        {
+                            info = await Task.Run(() => Characters.SelectChar(chars, rsp.Result.Content));
+                            Characters.SetCharType(CharType.PC, info);
+
+                            await msg.RespondAsync($"I have set {info.FirstName} {info.LastName} to be a PC.");
+                        } else
+                        {
+                            loop = false;
+                            await msg.RespondAsync($"Let me know if you change your mind.");
+                        }
+                    } else
+                    {
+                        await msg.RespondAsync("I see you're busy now. Try again later then.");
+                        loop = false;
+                    }
+                }
+            } else
+            {
+                await msg.RespondAsync("You have no characters in the database.");
+            }
+        }
+
+
+        [Command("SetNPC")]
+        [Description("Sets specified character executor to NPC status")]
+        public async Task SetNPC(CommandContext ctx)
+        {
+            var interactivity = ctx.Client.GetInteractivity();
+            List<CharInfo> chars = new List<CharInfo>();
+            CharInfo info = new CharInfo();
+            var msg = ctx.Message;
+            bool loop = true;
+
+            chars = await Task.Run(() => Characters.GetListCharacters(ctx.Message.Author.Mention));
+
+            string openMsg = $"Please select the character you would like to set as an NPC. \n0 - Quit{Characters.ListInfo(chars)}";
+
+            if (chars.Count > 0)
+            {
+                while (loop)
+                {
+                    if (ctx.Channel.IsPrivate)
+                    {
+                        msg = await ctx.RespondAsync(openMsg);
+                    }
+                    else
+                    {
+                        msg = await ctx.Member.SendMessageAsync(openMsg);
+                    }
+
+                    var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Please select the character you would like to set as a NPC.") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
+
+
+                    if (!rsp.TimedOut)
+                    {
+                        if (rsp.Result.Content.ToString() != "0")
+                        {
+                            info = await Task.Run(() => Characters.SelectChar(chars, rsp.Result.Content));
+                            Characters.SetCharType(CharType.NPC, info);
+
+                            await msg.RespondAsync($"I have set {info.FirstName} {info.LastName} to be an NPC.");
+                        }
+                        else
+                        {
+                            loop = false;
+                            await msg.RespondAsync($"Let me know if you change your mind.");
+                        }
+                    }
+                    else
+                    {
+                        await msg.RespondAsync("I see you're busy now. Try again later then.");
+                        loop = false;
+                    }
+                }
+            }
+            else
+            {
+                await msg.RespondAsync("You have no characters in the database.");
+            }
+        }
+
+
+        [Command("SetSupport")]
+        [Description("Sets specified character executor to Support status")]
+        public async Task SetSupport(CommandContext ctx)
+        {
+            var interactivity = ctx.Client.GetInteractivity();
+            List<CharInfo> chars = new List<CharInfo>();
+            CharInfo info = new CharInfo();
+            var msg = ctx.Message;
+            bool loop = true;
+
+            chars = await Task.Run(() => Characters.GetListCharacters(ctx.Message.Author.Mention));
+
+            string openMsg = $"Please select the character you would like to set as a PC. \n0 - Quit{Characters.ListInfo(chars)}";
+
+            if (chars.Count > 0)
+            {
+                while (loop)
+                {
+                    if (ctx.Channel.IsPrivate)
+                    {
+                        msg = await ctx.RespondAsync(openMsg);
+                    }
+                    else
+                    {
+                        msg = await ctx.Member.SendMessageAsync(openMsg);
+                    }
+
+                    var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Please select the character you would like to set as a support npc.") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
+
+
+                    if (!rsp.TimedOut)
+                    {
+                        if (rsp.Result.Content.ToString() != "0")
+                        {
+                            info = await Task.Run(() => Characters.SelectChar(chars, rsp.Result.Content));
+                            Characters.SetCharType(CharType.Support, info);
+
+                            await msg.RespondAsync($"I have set {info.FirstName} {info.LastName} to be a support npc.");
+                        }
+                        else
+                        {
+                            loop = false;
+                            await msg.RespondAsync($"Let me know if you change your mind.");
+                        }
+                    }
+                    else
+                    {
+                        await msg.RespondAsync("I see you're busy now. Try again later then.");
+                        loop = false;
+                    }
+                }
+            }
+            else
+            {
+                await msg.RespondAsync("You have no characters in the database.");
+            }
+        }
+
+
         [Command("EditCharacter")]
         [Aliases("EditChar")]
         [Description("Allows a player to edit their character information.")]
@@ -1187,9 +1411,9 @@ namespace Nine.Commands
             }
         }
 
-        [Command("EditCharacter")]
+        [Command("EditOtherCharacter")]
         [Aliases("EditOtherChar")]
-        [Description("Allows a player to edit their character information.")]
+        [Description("Allows an admin to edit character information.")]
         [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
         public async Task EditChar(CommandContext ctx, [Description("Player to Edit")] string monicker)
         {
@@ -1464,7 +1688,7 @@ namespace Nine.Commands
         [Command("UpdateLeader")]
         [Aliases("UpdateFactionLeader", "NewFactionLeader", "NewLeader")]
         [Description("Change the leader of the specified faction")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task FactionLeader(CommandContext ctx, [Description("The faction you wish to update")] string Faction, [Description("Leader's First Name")] string FirstName, [Description("Leader's Last Name")] string LastName)
         {
 
@@ -1475,7 +1699,7 @@ namespace Nine.Commands
 
         [Command("UpdateFactionName")]
         [Description("Change/Correct a faction's name")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task FactionName(CommandContext ctx, [Description("The faction you wish to update")] string Faction, [Description("Faction's Updated/corrected name")] string NewName)
         {
 
@@ -1486,7 +1710,7 @@ namespace Nine.Commands
 
         [Command("UpdateFactionURL")]
         [Description("Change/Correct a faction's url")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task FactionURL(CommandContext ctx, [Description("The faction you wish to update")] string Faction, [Description("Faction's Updated/corrected profile url")] string NewURL)
         {
 
@@ -1498,7 +1722,7 @@ namespace Nine.Commands
         [Command("ActiveFaction")]
         [Aliases("OpenFaction")]
         [Description("Set the faction to 'Active', signifying it is open for anyone to join.")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task OpenFaction(CommandContext ctx, [Description("Sets the named faction to 'open' status -- Ie anyone can join.")] string Faction)
         {
             await ctx.TriggerTypingAsync();
@@ -1509,7 +1733,7 @@ namespace Nine.Commands
         [Command("CloseFaction")]
         [Aliases("ClosedFaction")]
         [Description("Set the faction to 'closed', signifying that the faction is full and/or not taking new members.")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task CloseFaction(CommandContext ctx, [Description("Sets the named faction to 'open' status -- Ie anyone can join.")] string Faction)
         {
             await ctx.TriggerTypingAsync();
@@ -1520,7 +1744,7 @@ namespace Nine.Commands
         [Command("RestrictFaction")]
         [Aliases("RestrictedFaction")]
         [Description("Set the faction to 'restricted', signifying that the faction is only accepting members by selective recruitment.")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task RestrictFaction(CommandContext ctx, [Description("Sets the named faction to 'open' status -- Ie anyone can join.")] string Faction)
         {
             await ctx.TriggerTypingAsync();
@@ -1531,7 +1755,7 @@ namespace Nine.Commands
         [Command("DefunctFaction")]
         [Aliases("DeadFaction")]
         [Description("Set the faction to 'defunct', signifying that the faction is out of operations. Or use it as mask to make it look dead.")]
-        [RequireRoles(RoleCheckMode.Any, "Glitter Armament Infinity", "CEO", "Story Mod")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
         public async Task DeadFaction(CommandContext ctx, [Description("Sets the named faction to 'open' status -- Ie anyone can join.")] string Faction)
         {
             await ctx.TriggerTypingAsync();

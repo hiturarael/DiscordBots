@@ -38,8 +38,6 @@ namespace Nine
         public bool Relist { get; set; }
         public CharStatus status { get; set; }
         public CharType type { get; set; }
-        public CharStatus prevstatus { get; set; }
-        public CharType prevtype { get; set; }
     }
 
     public enum CharStatus
@@ -737,7 +735,7 @@ namespace Nine
 
             if (info.Player != info.PrevPlayer)
             {
-                string query = $"UPDATE {charTable} SET PlayerID='{info.Player}'";
+                string query = $"UPDATE {charTable} SET PlayerID='{info.Player}' WHERE ID={info.charID}";
 
                 SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
@@ -746,7 +744,7 @@ namespace Nine
 
             if (info.FirstName != info.PrevFN)
             {
-                string query = $"UPDATE {charTable} SET FirstName='{info.FirstName}'";
+                string query = $"UPDATE {charTable} SET FirstName='{info.FirstName}' WHERE ID={info.charID}";
 
                 SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
@@ -755,7 +753,7 @@ namespace Nine
 
             if (info.LastName != info.PrevLN)
             {
-                string query = $"UPDATE {charTable} SET LastName='{info.LastName}'";
+                string query = $"UPDATE {charTable} SET LastName='{info.LastName}' WHERE ID={info.charID}";
 
                 SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
@@ -764,7 +762,7 @@ namespace Nine
 
             if (info.Gender != info.PrevGender)
             {
-                string query = $"UPDATE {charTable} SET Gender='{info.Gender}'";
+                string query = $"UPDATE {charTable} SET Gender='{info.Gender}' WHERE ID={info.charID}";
 
                 SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
@@ -773,7 +771,7 @@ namespace Nine
 
             if (info.Unit != info.PrevUnit)
             {
-                string query = $"UPDATE {charTable} SET UnitId='{Units.GetUnitID(info.Unit)}'";
+                string query = $"UPDATE {charTable} SET UnitId='{Units.GetUnitID(info.Unit)}' WHERE ID={info.charID}";
 
                 SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
@@ -783,7 +781,7 @@ namespace Nine
 
             if (info.Faction != info.PrevFaction)
             {
-                string query = $"UPDATE {charTable} SET Faction='{info.Faction}'";
+                string query = $"UPDATE {charTable} SET Faction='{info.Faction}' WHERE ID={info.charID}";
 
                 SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
@@ -792,7 +790,7 @@ namespace Nine
 
             if (info.Url != info.PrevUrl)
             {
-                string query = $"UPDATE {charTable} SET URL='{info.Url}'";
+                string query = $"UPDATE {charTable} SET URL='{info.Url}' WHERE ID={info.charID}";
 
                 SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
@@ -801,7 +799,7 @@ namespace Nine
 
             if (info.Blurb != info.PrevBlurb)
             {
-                string query = $"UPDATE {charTable} SET Blurb='{info.Blurb}'";
+                string query = $"UPDATE {charTable} SET Blurb='{info.Blurb}' WHERE ID={info.charID}";
 
                 SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
@@ -809,6 +807,30 @@ namespace Nine
             }
 
             return msg;
+        }
+
+        public static string SetCharType(CharType type, CharInfo info)
+        {
+            CharType t = info.type;
+
+            string query = $"UPDATE {charTable} SET CharType='{type}' WHERE ID={info.charID}";
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            return $"Character has been updated from {t} to {type}.";
+        }
+
+        public static string SetCharType(CharType type, string FirstName, string LastName)
+        {
+            string query = $"UPDATE {charTable} SET CharType='{type}' WHERE FirstName='{FirstName}' AND LastName='{LastName}'";
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+            return $"Character has been updated to {type}.";
+        }
+
+        public static string SetCharActivity(CharStatus status, string FirstName, string LastName)
+        {
+            string query = $"UPDATE {charTable} SET Status='{status}' WHERE FirstName='{FirstName}' AND LastName='{LastName}'";
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+            return $"Character has been updated to {status}.";
         }
 
         #region support
