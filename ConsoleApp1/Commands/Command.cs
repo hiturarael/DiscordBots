@@ -1362,6 +1362,60 @@ namespace Nine.Commands
 
             
         }
+
+        [Command("ListActiveCharacters")]
+        [Aliases("ActiveChars", "ActiveCharacters")]
+        [Description("Lists the characters with the status active")]
+        public async Task ActiveChars(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.ListChars(CharStatus.Active));
+        }
+
+        [Command("ListInactiveCharacters")]
+        [Aliases("InactiveChars", "InactiveCharacters")]
+        [Description("Lists the characters with the status inactive")]
+        public async Task InactiveChars(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.ListChars(CharStatus.Inactive));
+        }
+
+        [Command("ListDeadCharacters")]
+        [Aliases("DeadChars", "DeadCharacters")]
+        [Description("Lists the characters with the status inactive")]
+        public async Task DeadChars(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.ListChars(CharStatus.Inactive));
+        }
+
+        [Command("ListPlayerCharacters")]
+        [Aliases("PlayerChars", "PlayerCharacters", "PCs")]
+        [Description("Lists all PCs")]
+        public async Task PlayerChars(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.ListChars(CharType.PC));
+        }
+
+        [Command("ListSupportCharacters")]
+        [Aliases("SupportChars", "SupportCharacters", "SupportPCs", "SPCs")]
+        [Description("Lists all PCs")]
+        public async Task SupportChars(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.ListChars(CharType.Support));
+        }
+
+        [Command("ListNonPlayerCharacters")]
+        [Aliases("NonPlayerChars", "NonPlayerCharacters", "NPCs")]
+        [Description("Lists all PCs")]
+        public async Task NonPlayerChars(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.ListChars(CharType.NPC));
+        }
         #endregion
 
         #region Factions

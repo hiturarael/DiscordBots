@@ -38,6 +38,21 @@ namespace Nine
         public bool Relist { get; set; }
     }
 
+    public enum CharStatus
+    {
+        Active,
+        Inactive,
+        Dead,
+        Template
+    }
+
+    public enum CharType
+    {
+        PC,
+        NPC,
+        Support,
+        Template
+    }
     public class Characters
     {
         public static readonly bool testing = false;
@@ -64,7 +79,7 @@ namespace Nine
                     result = $"{player} plays {firstname} {lastname}";
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 result = "I'm sorry, something went wrong with the query.";
             }
@@ -76,7 +91,7 @@ namespace Nine
         {
             string query = $"SELECT * FROM {charTable} WHERE FirstName='{Firstname}'";
 
-            if(Lastname == "")
+            if (Lastname == "")
             {
                 query += $" AND LastName='{Lastname}'";
             }
@@ -96,16 +111,16 @@ namespace Nine
             string faction = Factions.GetFactionByID(Convert.ToInt32(row["FactionID"]));
             string factioninfo = "is a member of";
 
-            if(row["LastName"].ToString() != "")
+            if (row["LastName"].ToString() != "")
             {
                 fullname = $"{row["FirstName"]} {row["LastName"]}";
             }
 
-            if(faction == "Independent")
+            if (faction == "Independent")
             {
                 factioninfo = $"is an {faction}";
             }
-            switch(row["Gender"].ToString().ToLower())
+            switch (row["Gender"].ToString().ToLower())
             {
                 case "male":
                     pronoun = "his";
@@ -117,9 +132,9 @@ namespace Nine
                     pronoun = "their";
                     break;
             }
-                
+
             return $"{fullname} {factioninfo}. {pronoun.First().ToString().ToUpper() + pronoun.Substring(1)} profile can be found at {row["URL"]}";
-            
+
         }
 
         public static void AddCharacter(CharInfo newCharacter)
@@ -130,7 +145,7 @@ namespace Nine
             string query = $"INSERT INTO {charTable}(PlayerID, FirstName, LastName,Gender,UnitID,FactionID,URL,Blurb) VALUES(@PlayerID, @FirstName, @LastName, @Gender, @UnitID, @FactionID, @URL, @Blurb)";
 
             string[] Parameters = { "@PlayerID", "@FirstName", "@LastName", "@Gender", "@UnitID", "@FactionID", "@URL", "@Blurb" };
-            
+
             string[] Values = { Player.GetPlayerID(newCharacter.Player).ToString(), newCharacter.FirstName, newCharacter.LastName, newCharacter.Gender, unitID.ToString(), factionID.ToString(), newCharacter.Url, newCharacter.Blurb };
 
             SqlCommand.ExecuteQuery_Params(query, NineBot.cfgjson, Parameters, Values);
@@ -140,7 +155,7 @@ namespace Nine
 
         public static string PlayerChars(string player)
         {
-            if(!player.Contains("<@"))
+            if (!player.Contains("<@"))
             {
                 player = Player.GetPlayer(player, Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention);
             }
@@ -159,7 +174,7 @@ namespace Nine
                 else
                 {
                     result = $"{player} plays the following characters:\n";
-                   foreach(DataRow row in dt.Rows)
+                    foreach (DataRow row in dt.Rows)
                     {
                         result += $"\n\t{row["FirstName"]} {row["LastName"]}";
                     }
@@ -173,6 +188,53 @@ namespace Nine
             return result;
         }
 
+        public static string ListChars(CharStatus status)
+        {
+            string query = $"Select FirstName, LastName FROM {charTable} where Status = {status} ORDER BY LastName Asc";
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+            string response = $"Characters falling under the {status} category are:";
+
+            if (dt.Rows.Count > 0)
+            {
+                DataRowCollection rows = dt.Rows;
+
+                foreach (DataRow row in rows)
+                {
+                    response += $"\n{row["FirstName"]} {row["LastName"]}";
+                }
+            }
+            else
+            {
+                response = $"There are no characters with the status {status}";
+            }
+
+            return response;
+        }
+    
+
+        public static string ListChars(CharType type)
+        {
+            string query = $"Select FirstName, LastName FROM {charTable} where CharType = {type} ORDER BY LastName Asc";
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+            string response = $"Characters falling under the {type} category are:";
+
+            if (dt.Rows.Count > 0)
+            {
+                DataRowCollection rows = dt.Rows;
+
+                foreach (DataRow row in rows)
+                {
+                    response += $"\n{row["FirstName"]} {row["LastName"]}";
+                }
+            }
+            else
+            {
+                response = $"There are no characters with the type {type}";
+            }
+
+            return response;
+        }
+    
         public static async Task<CharInfo> SetFirstName(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
         {
             var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What is the character's first name") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
