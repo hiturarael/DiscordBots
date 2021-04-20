@@ -1416,6 +1416,16 @@ namespace Nine.Commands
             await ctx.TriggerTypingAsync();
             await ctx.RespondAsync(Characters.ListChars(CharType.NPC));
         }
+
+        [Command("LinkCharProfile")]
+        [Aliases("LinkProfile")]
+        [Description("Link a character's profile")]
+        public async Task LinkProfile(CommandContext ctx, string FirstName, string LastName)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.LinkProfile(FirstName, LastName));
+
+        }
         #endregion
 
         #region Factions

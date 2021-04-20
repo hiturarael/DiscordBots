@@ -190,7 +190,7 @@ namespace Nine
 
         public static string ListChars(CharStatus status)
         {
-            string query = $"Select FirstName, LastName FROM {charTable} where Status = {status} ORDER BY LastName Asc";
+            string query = $"Select FirstName, LastName FROM {charTable} where Status = '{status}' ORDER BY LastName Asc";
             DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
             string response = $"Characters falling under the {status} category are:";
 
@@ -211,10 +211,26 @@ namespace Nine
             return response;
         }
     
+        public static string LinkProfile(string FirstName, string LastName)
+        {
+            string query = $"SELECT URL FROM {charTable} where FirstName='{FirstName}' AND LastName ='{LastName}'";
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            if(dt.Rows.Count > 0)
+            {
+                DataRow row = dt.Rows[0];
+
+                return row["URL"].ToString();
+            } else
+            {
+                return "I did not find anyone with that name in the records.";
+            }
+        }
 
         public static string ListChars(CharType type)
         {
-            string query = $"Select FirstName, LastName FROM {charTable} where CharType = {type} ORDER BY LastName Asc";
+            string query = $"Select FirstName, LastName FROM {charTable} where CharType = '{type}' ORDER BY LastName Asc";
             DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
             string response = $"Characters falling under the {type} category are:";
 
