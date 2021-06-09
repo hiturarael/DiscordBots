@@ -138,7 +138,7 @@ namespace Nine.Commands
             return result;
         }
 
-        public static string UpdateThread(string threadId, string status)
+        public static string UpdateThread(string threadId, string status, bool fromCompleted = false)
         {
             string aliasQuery = $"SELECT * from {threadTable} WHERE Alias LIKE '%{threadId}%'";
             string threadQuery = $"SELECT * from {threadTable} WHERE Title LIKE '%{threadId}%'";
@@ -172,7 +172,11 @@ namespace Nine.Commands
 
                     result = $"The status you are trying to update with is not valid. Use one of the following: {vals.Trim()}";
                 }
-                else if (status != "Complete")
+                else if (status == "Complete" && !fromCompleted)
+                {
+                    result = "The status complete can only be assigned with the ThreadComplete commands.";
+                }
+                else
                 {
 
                     if (threadId.Contains("https://") || threadId.Contains("srwignition.com"))
@@ -203,13 +207,11 @@ namespace Nine.Commands
                         SqlCommand.ExecuteQuery_Params(updateQuery, NineBot.cfgjson, parameters, values);
 
                         result += "I have updated the status of the thread.";
-                    } else
+                    }
+                    else
                     {
                         result = "There is no thread with that identifier. Please try again.";
                     }
-                } else
-                {
-                    result = "The status complete can only be assigned with the ThreadComplete commands.";
                 }
             }
             catch (Exception ex)
@@ -578,7 +580,7 @@ namespace Nine.Commands
                 if (GetThreadStatus(thread) != ThreadStatus.Complete.ToString())
                 {
                     PurgePostedForThread(threadNum);
-                    UpdateThread(thread, "Complete");
+                    UpdateThread(thread, "Complete", true);
                     ClearCooldown(threadNum);
                     ResetPostOrder(thread);
 
