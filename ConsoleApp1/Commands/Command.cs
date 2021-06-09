@@ -293,6 +293,51 @@ namespace Nine.Commands
             await ctx.RespondAsync(Posts.ThreadComplete(Thread));
         }
 
+        [Command("LinkThread")]
+        [Aliases("LinkPost")]
+        [Description("Links specified thread to chat")]
+        public async Task LinkThread(CommandContext ctx, string Thread)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Posts.linkPost(Thread));
+        }
+
+        [Command("ListActiveThreads")]
+        [Description("Lists the active threads.")]
+        public async Task ListActiveThreads(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Posts.ListThreads(Posts.ThreadStatus.Open));
+        }
+
+        [Command("ListCompleteThreads")]
+        [Description("Lists the active threads.")]
+        public async Task ListCompleteThreads(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Posts.ListThreads(Posts.ThreadStatus.Complete));
+        }
+
+        [Command("ListAbandonedThreads")]
+        [Description("Lists the active threads.")]
+        public async Task ListAbandonedThreads(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Posts.ListThreads(Posts.ThreadStatus.Abandoned));
+        }
+
+        [Command("ListHiatusThreads")]
+        [Description("Lists the active threads.")]
+        public async Task ListHiatusThreads(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Posts.ListThreads(Posts.ThreadStatus.Hiatus));
+        }
         #endregion
 
         #region Player
@@ -379,9 +424,65 @@ namespace Nine.Commands
             }
         }
 
+        [Command("PingAll")]
+        [Aliases("Everyone", "Navi")]
+        [RequireRoles(RoleCheckMode.Any, "Tech Mod", "CEO", "Story Mod")]
+        public async Task PingEveryone(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Player.GetAllPlayersMentions(Player.PlayerStatus.Active));
+        }
         #endregion
 
         #region Weapons
+
+        [Command("ListUnits")]
+        [Description("Lists all units.")]
+        public async Task ListAllUnits(CommandContext ctx, [Description("MP (yes/no)")] string MP = "no")
+        {
+            List<string> units = Units.ListUnits();
+
+            List<string> pgs = new List<string>();
+            string tmp = "";
+            string tmp2 = "";
+            foreach (string unit in units)
+            {
+                tmp2 += unit;
+
+                if (unit.Length < 2000)
+                {
+                    tmp = tmp2;
+                }
+                else
+                {
+                    pgs.Add(tmp);
+                    tmp2 = "";
+                    tmp = "";
+                }
+            }
+
+            if(pgs.Count < 1)
+            {
+                pgs.Add(tmp);
+            }
+
+            if (ctx.Channel.IsPrivate)
+            {
+                foreach (string page in pgs)
+                {
+                    await ctx.RespondAsync(page);
+                }
+            }
+            else
+            {
+                foreach (string page in pgs)
+                {
+                    await ctx.Member.SendMessageAsync(page);
+                }
+            }
+        }
+
         [Command("AddUnit")]
         [Aliases("AddWeapon")]
         [Description("Add an open unit to the database")]
@@ -558,6 +659,11 @@ namespace Nine.Commands
                 }
             }
 
+            if (pgs.Count < 1)
+            {
+                pgs.Add(tmp);
+            }
+
             await ctx.RespondAsync("Units that fall under that category are:");
 
             foreach(string page in pgs)
@@ -593,7 +699,10 @@ namespace Nine.Commands
                     tmp = "";
                 }
             }
-
+            if (pgs.Count < 1)
+            {
+                pgs.Add(tmp);
+            }
             await ctx.RespondAsync("Units that fall under that category are:");
 
             foreach (string page in pgs)
@@ -629,7 +738,10 @@ namespace Nine.Commands
                     tmp = "";
                 }
             }
-
+            if (pgs.Count < 1)
+            {
+                pgs.Add(tmp);
+            }
             await ctx.RespondAsync("Units that fall under that category are:");
 
             foreach (string page in pgs)
@@ -666,8 +778,10 @@ namespace Nine.Commands
                 }
             }
 
-            pgs.Add(tmp);
-
+            if (pgs.Count < 1)
+            {
+                pgs.Add(tmp);
+            }
             await ctx.RespondAsync("Units that fall under that category are:");
 
             foreach (string page in pgs)
@@ -703,7 +817,10 @@ namespace Nine.Commands
                     tmp = "";
                 }
             }
-
+            if (pgs.Count < 1)
+            {
+                pgs.Add(tmp);
+            }
             await ctx.RespondAsync("Units that fall under that category are:");
 
             foreach (string page in pgs)
@@ -1121,7 +1238,7 @@ namespace Nine.Commands
         }
 
         [Command("SetPC")]
-        [Description("Sets specified character executor to PC status")]
+        [Description("Sets specified character to PC status")]
         public async Task SetPC(CommandContext ctx)
         {
             var interactivity = ctx.Client.GetInteractivity();
@@ -1175,9 +1292,8 @@ namespace Nine.Commands
             }
         }
 
-
         [Command("SetNPC")]
-        [Description("Sets specified character executor to NPC status")]
+        [Description("Sets specified character to NPC status")]
         public async Task SetNPC(CommandContext ctx)
         {
             var interactivity = ctx.Client.GetInteractivity();
@@ -1234,9 +1350,8 @@ namespace Nine.Commands
             }
         }
 
-
         [Command("SetSupport")]
-        [Description("Sets specified character executor to Support status")]
+        [Description("Sets specified character to Support status")]
         public async Task SetSupport(CommandContext ctx)
         {
             var interactivity = ctx.Client.GetInteractivity();
@@ -1293,6 +1408,179 @@ namespace Nine.Commands
             }
         }
 
+        [Command("SetActive")]
+        [Description("Sets specified character to Active")]
+        public async Task SetActive(CommandContext ctx)
+        {
+            var interactivity = ctx.Client.GetInteractivity();
+            List<CharInfo> chars = new List<CharInfo>();
+            CharInfo info = new CharInfo();
+            var msg = ctx.Message;
+            bool loop = true;
+
+            chars = await Task.Run(() => Characters.GetListCharacters(ctx.Message.Author.Mention));
+
+            string openMsg = $"Please select the character you would like to set as active. \n0 - Quit{Characters.ListInfo(chars)}";
+
+            if (chars.Count > 0)
+            {
+                while (loop)
+                {
+                    if (ctx.Channel.IsPrivate)
+                    {
+                        msg = await ctx.RespondAsync(openMsg);
+                    }
+                    else
+                    {
+                        msg = await ctx.Member.SendMessageAsync(openMsg);
+                    }
+
+                    var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Please select the character you would like to set as active.") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
+
+
+                    if (!rsp.TimedOut)
+                    {
+                        if (rsp.Result.Content.ToString() != "0")
+                        {
+                            info = await Task.Run(() => Characters.SelectChar(chars, rsp.Result.Content));
+                            Characters.SetCharActivity(CharStatus.Active, info);
+
+                            await msg.RespondAsync($"I have set {info.FirstName} {info.LastName} to Active.");
+                        }
+                        else
+                        {
+                            loop = false;
+                            await msg.RespondAsync($"Let me know if you change your mind.");
+                        }
+                    }
+                    else
+                    {
+                        await msg.RespondAsync("I see you're busy now. Try again later then.");
+                        loop = false;
+                    }
+                }
+            }
+            else
+            {
+                await msg.RespondAsync("You have no characters in the database.");
+            }
+        }
+
+        [Command("SetInactive")]
+        [Description("Sets specified character to Inactive")]
+        public async Task SetInactive(CommandContext ctx)
+        {
+            var interactivity = ctx.Client.GetInteractivity();
+            List<CharInfo> chars = new List<CharInfo>();
+            CharInfo info = new CharInfo();
+            var msg = ctx.Message;
+            bool loop = true;
+
+            chars = await Task.Run(() => Characters.GetListCharacters(ctx.Message.Author.Mention));
+
+            string openMsg = $"Please select the character you would like to set as inactive. \n0 - Quit{Characters.ListInfo(chars)}";
+
+            if (chars.Count > 0)
+            {
+                while (loop)
+                {
+                    if (ctx.Channel.IsPrivate)
+                    {
+                        msg = await ctx.RespondAsync(openMsg);
+                    }
+                    else
+                    {
+                        msg = await ctx.Member.SendMessageAsync(openMsg);
+                    }
+
+                    var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Please select the character you would like to set as inactive.") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
+
+
+                    if (!rsp.TimedOut)
+                    {
+                        if (rsp.Result.Content.ToString() != "0")
+                        {
+                            info = await Task.Run(() => Characters.SelectChar(chars, rsp.Result.Content));
+                            Characters.SetCharActivity(CharStatus.Inactive, info);
+
+                            await msg.RespondAsync($"I have set {info.FirstName} {info.LastName} to Inctive.");
+                        }
+                        else
+                        {
+                            loop = false;
+                            await msg.RespondAsync($"Let me know if you change your mind.");
+                        }
+                    }
+                    else
+                    {
+                        await msg.RespondAsync("I see you're busy now. Try again later then.");
+                        loop = false;
+                    }
+                }
+            }
+            else
+            {
+                await msg.RespondAsync("You have no characters in the database.");
+            }
+        }
+
+        [Command("SetDead")]
+        [Description("Sets specified character to Active")]
+        public async Task SetDead(CommandContext ctx)
+        {
+            var interactivity = ctx.Client.GetInteractivity();
+            List<CharInfo> chars = new List<CharInfo>();
+            CharInfo info = new CharInfo();
+            var msg = ctx.Message;
+            bool loop = true;
+
+            chars = await Task.Run(() => Characters.GetListCharacters(ctx.Message.Author.Mention));
+
+            string openMsg = $"Please select the character you would like to set as dead. \n0 - Quit{Characters.ListInfo(chars)}";
+
+            if (chars.Count > 0)
+            {
+                while (loop)
+                {
+                    if (ctx.Channel.IsPrivate)
+                    {
+                        msg = await ctx.RespondAsync(openMsg);
+                    }
+                    else
+                    {
+                        msg = await ctx.Member.SendMessageAsync(openMsg);
+                    }
+
+                    var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Please select the character you would like to set as dead.") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
+
+
+                    if (!rsp.TimedOut)
+                    {
+                        if (rsp.Result.Content.ToString() != "0")
+                        {
+                            info = await Task.Run(() => Characters.SelectChar(chars, rsp.Result.Content));
+                            Characters.SetCharActivity(CharStatus.Dead, info);
+
+                            await msg.RespondAsync($"I have set {info.FirstName} {info.LastName} to Dead. My condolenses, Senpai.");
+                        }
+                        else
+                        {
+                            loop = false;
+                            await msg.RespondAsync($"Let me know if you change your mind.");
+                        }
+                    }
+                    else
+                    {
+                        await msg.RespondAsync("I see you're busy now. Try again later then.");
+                        loop = false;
+                    }
+                }
+            }
+            else
+            {
+                await msg.RespondAsync("You have no characters in the database.");
+            }
+        }
 
         [Command("EditCharacter")]
         [Aliases("EditChar")]
@@ -1661,7 +1949,15 @@ namespace Nine.Commands
         {
             await ctx.TriggerTypingAsync();
             await ctx.RespondAsync(Characters.LinkProfile(FirstName, LastName));
+        }
 
+        [Command("LinkTemplate")]
+        [Aliases("LinkNewCharTemplate")]
+        [Description("Link a character's profile")]
+        public async Task LinkTemplate(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(Characters.LinkProfile("Character", "Template"));
         }
         #endregion
 

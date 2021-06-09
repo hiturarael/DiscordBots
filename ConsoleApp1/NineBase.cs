@@ -50,7 +50,9 @@ namespace Nine
                 Token = cfgjson.Token,
                 TokenType = TokenType.Bot,
                 AutoReconnect = true,
-                MinimumLogLevel = LogLevel.Debug
+                MinimumLogLevel = LogLevel.Debug,
+                Intents = DiscordIntents.All
+                
             };
 
             //instantiate client
@@ -67,7 +69,10 @@ namespace Nine
                 PaginationBehaviour = PaginationBehaviour.Ignore,                
 
                 Timeout = TimeSpan.FromSeconds(10)
+
+                
             }) ;
+
 
             //set up commands
             var ccfg = new CommandsNextConfiguration
@@ -84,10 +89,12 @@ namespace Nine
 
             //hook commands up
             this.Commands = this.Client.UseCommandsNext(ccfg);
+            this.Client.GuildMemberAdded += this.User_Joined;
 
             //hook events
             this.Commands.CommandExecuted += this.Commands_CommandExecuted;
             this.Commands.CommandErrored += this.Commands_CommandErrored;
+            
 
             //register
             this.Commands.RegisterCommands<BaseCommand>();
@@ -129,6 +136,18 @@ namespace Nine
         private Task Commands_CommandExecuted(CommandsNextExtension sender, CommandExecutionEventArgs e)
         {
             e.Context.Client.Logger.LogInformation(BotEventId, $"{e.Context.User.Username} successfully executed '{e.Command.QualifiedName}'");
+
+            return Task.CompletedTask;
+        }
+
+        private Task User_Joined(DiscordClient sender, GuildMemberAddEventArgs e)
+        {
+            sender.Logger.LogInformation(BotEventId, $"User Joined: {e.Member}");
+
+            if(e.Member.Username.ToLower().Contains("twitter.com"))
+            {
+                e.Member.BanAsync(0, "Due to your username and a recent influx of bots matching the pattern you have been instant kick banned, senpai. If this is in error please reach out on our website. https://srwignition.com/index.php");
+            } 
 
             return Task.CompletedTask;
         }

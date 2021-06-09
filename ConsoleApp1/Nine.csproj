@@ -6,19 +6,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.3.0" />
-    <PackageReference Include="DSharpPlus" Version="4.0.0-rc2" />
-    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-rc2" />
-    <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-rc2" />
-    <PackageReference Include="MySql.Data" Version="8.0.23" />
+    <PackageReference Include="Discord.Net" Version="2.4.0" />
+    <PackageReference Include="DSharpPlus" Version="4.0.1" />
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.1" />
+    <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.1" />
+    <PackageReference Include="MySql.Data" Version="8.0.25" />
     <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="DiscordBots">
-      <HintPath>..\DiscordBots\bin\Debug\netcoreapp3.1\DiscordBots.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
+    <ProjectReference Include="..\DiscordBots\DiscordBots.csproj" />
   </ItemGroup>
 
   <ItemGroup>

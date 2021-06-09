@@ -192,7 +192,7 @@ namespace Nine
 
         public static string ListChars(CharStatus status)
         {
-            string query = $"Select FirstName, LastName FROM {charTable} where Status = '{status}' ORDER BY LastName Asc";
+            string query = $"Select FirstName, LastName, CharType FROM {charTable} where Status = '{status}' ORDER BY LastName Asc";
             DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
             string response = $"Characters falling under the {status} category are:";
 
@@ -202,7 +202,7 @@ namespace Nine
 
                 foreach (DataRow row in rows)
                 {
-                    response += $"\n{row["FirstName"]} {row["LastName"]}";
+                    response += $"\n{row["FirstName"]} {row["LastName"]} - {row["CharType"]}";
                 }
             }
             else
@@ -212,14 +212,36 @@ namespace Nine
 
             return response;
         }
-    
+
+        public static string ListChars(CharType type)
+        {
+            string query = $"Select FirstName, LastName, Status FROM {charTable} where CharType = '{type}' ORDER BY LastName Asc";
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+            string response = $"Characters falling under the {type} category are:";
+
+            if (dt.Rows.Count > 0)
+            {
+                DataRowCollection rows = dt.Rows;
+
+                foreach (DataRow row in rows)
+                {
+                    response += $"\n{row["FirstName"]} {row["LastName"]} - {row["Status"]}";
+                }
+            }
+            else
+            {
+                response = $"There are no characters with the type {type}";
+            }
+
+            return response;
+        }
         public static string LinkProfile(string FirstName, string LastName)
         {
             string query = $"SELECT URL FROM {charTable} where FirstName='{FirstName}' AND LastName ='{LastName}'";
 
             DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
-            if(dt.Rows.Count > 0)
+            if (dt.Rows.Count > 0)
             {
                 DataRow row = dt.Rows[0];
 
@@ -230,29 +252,6 @@ namespace Nine
             }
         }
 
-        public static string ListChars(CharType type)
-        {
-            string query = $"Select FirstName, LastName FROM {charTable} where CharType = '{type}' ORDER BY LastName Asc";
-            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
-            string response = $"Characters falling under the {type} category are:";
-
-            if (dt.Rows.Count > 0)
-            {
-                DataRowCollection rows = dt.Rows;
-
-                foreach (DataRow row in rows)
-                {
-                    response += $"\n{row["FirstName"]} {row["LastName"]}";
-                }
-            }
-            else
-            {
-                response = $"There are no characters with the type {type}";
-            }
-
-            return response;
-        }
-    
         public static async Task<CharInfo> SetFirstName(DiscordMessage msg, InteractivityExtension interactivity, CharInfo info)
         {
             var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("What is the character's first name") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
@@ -293,11 +292,11 @@ namespace Nine
 
             if (!rsp.TimedOut)
             {
-                info = await Task.Run(() =>LastName(info, rsp.Result.Content));
+                info = await Task.Run(() => LastName(info, rsp.Result.Content));
 
-                if(info.Errored)
-                { 
-                    await rsp.Result.RespondAsync("That character already exists. Terminating add function."); 
+                if (info.Errored)
+                {
+                    await rsp.Result.RespondAsync("That character already exists. Terminating add function.");
                 }
             }
             else
@@ -343,7 +342,7 @@ namespace Nine
 
             if (!rsp.TimedOut)
             {
-                info = Gender(info, rsp.Result.Content);   
+                info = Gender(info, rsp.Result.Content);
             }
             else
             {
@@ -377,7 +376,7 @@ namespace Nine
             {
                 info = Unit(info, rsp.Result.Content, info.Player);
 
-                if(info.Errored)
+                if (info.Errored)
                 {
                     await rsp.Result.RespondAsync("That weapon is either not available or not in our records. Terminating command.");
                 }
@@ -448,7 +447,7 @@ namespace Nine
                 } else
                 {
                     info.Unit = "";
-                }                
+                }
             }
 
             return info;
@@ -456,7 +455,7 @@ namespace Nine
 
         public static CharInfo CharType(CharInfo info, string msg)
         {
-            switch(msg.ToLower())
+            switch (msg.ToLower())
             {
                 case "pc":
                     info.type = Nine.CharType.PC;
@@ -480,7 +479,7 @@ namespace Nine
         {
             var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Is the character a PC, Support PC, or an NPC?") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
 
-            if(!rsp.TimedOut)
+            if (!rsp.TimedOut)
             {
                 info = CharType(info, rsp.Result.Content);
             } else
@@ -500,7 +499,7 @@ namespace Nine
             {
                 info = Faction(info, rsp.Result.Content);
 
-                if(info.Errored)
+                if (info.Errored)
                 {
                     await rsp.Result.RespondAsync("That faction does not exist. Terminating command.");
                 }
@@ -529,7 +528,7 @@ namespace Nine
                 if (!exists)
                 {
                     info.Errored = true;
-                } 
+                }
             }
 
             return info;
@@ -543,7 +542,7 @@ namespace Nine
             {
                 info = await URL(info, rsp.Result.Content);
 
-                if(info.Errored)
+                if (info.Errored)
                 {
                     await rsp.Result.RespondAsync("That profile link is in the records or formatted poorly. Must contain http or https and link to Ignition. Terminating command.");
                 }
@@ -566,11 +565,11 @@ namespace Nine
             else
             {
                 bool used = false;
-                    used = await Task.Run(()=> URLInUse(msg));
+                used = await Task.Run(() => URLInUse(msg));
 
                 if (used)
                 {
-                    info.Errored = true;                    
+                    info.Errored = true;
                 }
 
                 info.Url = msg;
@@ -608,13 +607,13 @@ namespace Nine
         {
             var rsp = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Is this character yours or someone else's?") && xm.ChannelId == msg.ChannelId, TimeSpan.FromSeconds(60));
 
-            if(!rsp.TimedOut)
+            if (!rsp.TimedOut)
             {
                 if (rsp.Result.Content.ToLower().ToString() == "mine")
                 {
                     info.Player = rsp.Result.Author.Mention;
 
-                    if(info.Player.Contains("<@") && !info.Player.Contains("<@!"))
+                    if (info.Player.Contains("<@") && !info.Player.Contains("<@!"))
                     {
                         info.Player = info.Player.Replace("<@", "<@!");
                     }
@@ -645,7 +644,7 @@ namespace Nine
 
             if (!rsp.TimedOut)
             {
-                if(rsp.Result.Content.ToLower() == "yes")
+                if (rsp.Result.Content.ToLower() == "yes")
                 {
                     info.Correct = true;
                 } else
@@ -668,10 +667,10 @@ namespace Nine
 
             if (!rsp.TimedOut)
             {
-                switch(rsp.Result.Content.ToLower())
+                switch (rsp.Result.Content.ToLower())
                 {
-                    case "player":                        
-                await msg.RespondAsync("Is this character yours or someone else's? If yours, enter 'mine'. If someone else's please use their monicker. Mention functionality is not enabled for this command and will result in an error.");
+                    case "player":
+                        await msg.RespondAsync("Is this character yours or someone else's? If yours, enter 'mine'. If someone else's please use their monicker. Mention functionality is not enabled for this command and will result in an error.");
                         info = await Characters.SetPlayer(msg, interactivity, info);
                         info.Relist = false;
                         break;
@@ -833,6 +832,15 @@ namespace Nine
             return $"Character has been updated to {status}.";
         }
 
+        public static string SetCharActivity(CharStatus status, CharInfo info)
+        {
+            CharStatus s = info.status;
+
+            string query = $"UPDATE {charTable} SET Status={status} WHERE ID={info.charID}";
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            return $"Character has been updated from {s} to {status}";
+        }
         #region support
         public static CharInfo NewChar()
         {

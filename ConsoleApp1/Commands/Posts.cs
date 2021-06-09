@@ -593,6 +593,22 @@ namespace Nine.Commands
             }
         }
 
+        public static string linkPost(string thread)
+        {
+            string query = $"SELECT URL from {threadTable} where Title='{thread}' OR Alias='{thread}'";
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            if(dt.Rows.Count > 0)
+            {
+                DataRow row = dt.Rows[0];
+                return $"{row["URL"]}";
+            } else
+            {
+                return "There are no records for that thread.";
+            }
+        }
+
         #region Support
         public static DataTable QueryNextPosts(int threadNum)
         {
@@ -659,6 +675,21 @@ namespace Nine.Commands
             return dt.Rows[0]["PostPosition"].ToString();
         }
 
+        public static string ListThreads(ThreadStatus status)
+        {
+            string query = $"SELECT * FROM {threadTable} WHERE Status = '{status}'";
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            string resp = "The following threads have that status:";
+
+            foreach(DataRow row in dt.Rows)
+            {
+                resp += $"\n **Thread**: {row["Title"]} \n\t*Alias*: {row["Alias"]}";
+            }
+
+            return resp;
+        }
         static DataTable QueryThread(string threadId)
         {
             string threadTitleQuery = $"SELECT * from {threadTable} where Title = '{threadId}'";

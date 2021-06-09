@@ -255,6 +255,28 @@ namespace Nine.Commands
             return outcome;
         }
 
+        public static List<string> ListUnits()
+        {
+            string query = $"SELECT ID, UnitName FROM {unitTable}";
+            List<string> outcome = new List<string>();
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            foreach (DataRow row in dt.Rows)
+            {
+                string aliasQuery = $"SELECT UnitName, Type FROM {aliasTable} WHERE parentID = {row["ID"]} ORDER BY Type DESC";
+                DataTable dt2 = SqlCommand.ExecuteQuery(aliasQuery, NineBot.cfgjson);
+                outcome.Add($"\n{row["UnitName"]}");
+
+                foreach (DataRow aliasRow in dt2.Rows)
+                {
+                    outcome.Add($"\n\t*{aliasRow["UnitName"]} ({aliasRow["Type"]})");
+                }
+            }
+
+            return outcome;
+        }
+
         public static string AddAlias(string unitName, string aliasName, AliasType type)
         {
             int unitId = GetUnitID(unitName);

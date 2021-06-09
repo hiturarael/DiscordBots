@@ -104,6 +104,27 @@ namespace Nine.Commands
             return $"{player} has been updated.";
         }
 
+        public static string GetAllPlayersMentions(PlayerStatus status)
+        {
+            string query = $"SELECT Player from {playerTable} WHERE Status = '{status}'";
+            DataTable dt = null;
+            string users = "";
+            dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            if (dt.Rows.Count > 0)
+            {                
+                foreach (DataRow row in dt.Rows)
+                {
+                    users += row["Player"].ToString();
+                }
+            } else
+            {
+                users = $"No users are marked as {status}";
+            }
+
+            return users;
+        }
+
         public static string UpdatePlayerMonicker(string player, string Monicker)
         {
             string query = $"UPDATE {playerTable} SET Monicker='{Monicker}' WHERE Monicker='{player}'";
