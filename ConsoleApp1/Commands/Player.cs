@@ -115,7 +115,7 @@ namespace Nine.Commands
             {                
                 foreach (DataRow row in dt.Rows)
                 {
-                    users += row["Player"].ToString();
+                    users += $"{row["Player"].ToString()} ";
                 }
             } else
             {
