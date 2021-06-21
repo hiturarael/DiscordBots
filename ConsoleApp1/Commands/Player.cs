@@ -149,9 +149,15 @@ namespace Nine.Commands
 
             DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
 
-            foreach(DataRow row in dt.Rows)
+            if (dt.Rows.Count > 0)
             {
-                resp += $"{row["Title"]}\n";
+                foreach (DataRow row in dt.Rows)
+                {
+                    resp += $"{row["Title"]}\n";
+                }
+            } else
+            {
+                resp = "You are currently not in any threads, senpai.";
             }
 
             return resp;
