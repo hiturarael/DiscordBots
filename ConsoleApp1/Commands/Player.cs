@@ -140,6 +140,23 @@ namespace Nine.Commands
             }
         }
 
+        public static string GetThreadsImIn(string player)
+        {
+            string id = player.Replace("!@","").Replace("<","").Replace(">","");
+
+            string query = $"use `ignition`; SELECT `postorder`.`ThreadID`, `postorder`.`Player`, `threads`.`Title` FROM `postorder` INNER JOIN `threads` ON `postorder`.`ThreadID` = `threads`.`ID` WHERE `postorder`.`Player` LIKE \"%{id}%\"";
+            string resp = "";
+
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            foreach(DataRow row in dt.Rows)
+            {
+                resp += $"{row["Title"]}\n";
+            }
+
+            return resp;
+
+        }
         #region Support
         public static bool GetPlayerStatus(string player, PlayerSearch search)
         {

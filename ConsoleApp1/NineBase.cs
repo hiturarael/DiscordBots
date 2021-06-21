@@ -51,7 +51,8 @@ namespace Nine
                 TokenType = TokenType.Bot,
                 AutoReconnect = true,
                 MinimumLogLevel = LogLevel.Debug,
-                Intents = DiscordIntents.All
+                Intents = DiscordIntents.All,
+                AlwaysCacheMembers = true
                 
             };
 
@@ -62,6 +63,7 @@ namespace Nine
             this.Client.Ready += this.Client_Ready;
             this.Client.GuildAvailable += this.Client_GuildAvailable;
             this.Client.ClientErrored += this.Client_ClientError;
+            
 
             //set up interactivity
             this.Client.UseInteractivity(new InteractivityConfiguration
@@ -69,8 +71,6 @@ namespace Nine
                 PaginationBehaviour = PaginationBehaviour.Ignore,                
 
                 Timeout = TimeSpan.FromSeconds(10)
-
-                
             }) ;
 
 
@@ -84,7 +84,7 @@ namespace Nine
                 EnableDms = true,
 
                 //enable mentioning bot as prefix
-                EnableMentionPrefix = true
+                EnableMentionPrefix = true,    
             };
 
             //hook commands up
@@ -94,7 +94,8 @@ namespace Nine
             //hook events
             this.Commands.CommandExecuted += this.Commands_CommandExecuted;
             this.Commands.CommandErrored += this.Commands_CommandErrored;
-            
+
+            this.Client.MessageCreated += this.MessageRecieved;
 
             //register
             this.Commands.RegisterCommands<BaseCommand>();
@@ -152,53 +153,69 @@ namespace Nine
             return Task.CompletedTask;
         }
 
+        private async Task MessageRecieved(DiscordClient sender, MessageCreateEventArgs e)
+        {
+            if(e.Message.Content.ToLower().Contains("nine is broke") || e.Message.Content.ToLower().Contains("9 is broke"))
+            {
+                await e.Channel.SendMessageAsync($"I am NOT broken, you're broken!");           
+            }
+        }
+
         private async Task Commands_CommandErrored(CommandsNextExtension sender, CommandErrorEventArgs e)
         {
-            e.Context.Client.Logger.LogInformation(BotEventId, $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}", DateTime.Now);
-
-            var emoji = DiscordEmoji.FromName(e.Context.Client, ":no_entry:");
-
-            //perm check
-            if(e.Exception is ChecksFailedException ex)
+            if (e.Context.Message.Content.ToLower().Contains("9 is broke"))
             {
-                var embed = new DiscordEmbedBuilder
-                {
-                    Title = "Access Denied",
-                    Description = $"{emoji} {emoji} Access denied, insufficient permissions {emoji}{emoji}",
-                    Color = new DiscordColor(0xFF0000) //red
-                };
-
-                await e.Context.RespondAsync(embed);
+                await e.Context.RespondAsync($"I am NOT broken, you're broken!");
             }
-
-            if(e.Exception is CommandNotFoundException)
+            else
             {
-                await e.Context.RespondAsync("I have no commands programmed with that name. Please use 9 help to get a list of commands.");
-            }
 
-            if(e.Exception is ArgumentException)
-            {
-                string format = $"9 <{e.Command.Name}";
+                e.Context.Client.Logger.LogInformation(BotEventId, $"{e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}", DateTime.Now);
 
-                foreach(string alias in e.Command.Aliases)
+                var emoji = DiscordEmoji.FromName(e.Context.Client, ":no_entry:");
+
+                //perm check
+                if (e.Exception is ChecksFailedException ex)
                 {
-                    format = $"{format}|{alias}";
+                    var embed = new DiscordEmbedBuilder
+                    {
+                        Title = "Access Denied",
+                        Description = $"{emoji} {emoji} Access denied, insufficient permissions {emoji}{emoji}",
+                        Color = new DiscordColor(0xFF0000) //red
+                    };
+
+                    await e.Context.RespondAsync(embed);
                 }
 
-                format += ">";
-
-                IReadOnlyList<CommandOverload> overloads = e.Command.Overloads;
-
-                foreach(var arg in overloads)
+                if (e.Exception is CommandNotFoundException)
                 {
-                    IReadOnlyList<CommandArgument> x = arg.Arguments;
-                    foreach (var y in x)
+                    await e.Context.RespondAsync("I have no commands programmed with that name. Please use 9 help to get a list of commands.");
+                }
+
+                if (e.Exception is ArgumentException)
+                {
+                    string format = $"9 <{e.Command.Name}";
+
+                    foreach (string alias in e.Command.Aliases)
                     {
-                        format = $"{format} \"{y.Name}\"";
+                        format = $"{format}|{alias}";
                     }
 
+                    format += ">";
+
+                    IReadOnlyList<CommandOverload> overloads = e.Command.Overloads;
+
+                    foreach (var arg in overloads)
+                    {
+                        IReadOnlyList<CommandArgument> x = arg.Arguments;
+                        foreach (var y in x)
+                        {
+                            format = $"{format} \"{y.Name}\"";
+                        }
+
+                    }
+                    await e.Context.RespondAsync($"Your command was entered in an invalid format. The correct format is: {format}");
                 }
-                await e.Context.RespondAsync($"Your command was entered in an invalid format. The correct format is: {format}");
             }
         }
     }

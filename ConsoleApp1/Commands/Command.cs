@@ -108,6 +108,7 @@ namespace Nine.Commands
             else
             {
                 await ctx.RespondAsync(Posts.UpNext(thread, true));
+                await ctx.RespondAsync(ctx.User.Mention);
             }
         }
 
@@ -432,6 +433,14 @@ namespace Nine.Commands
             await ctx.TriggerTypingAsync();
 
             await ctx.RespondAsync(Player.GetAllPlayersMentions(Player.PlayerStatus.Active));
+        }
+
+        [Command("MyThreads")]
+        public async Task MyThreads(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            await ctx.RespondAsync(Player.GetThreadsImIn(ctx.User.Mention));
         }
         #endregion
 
