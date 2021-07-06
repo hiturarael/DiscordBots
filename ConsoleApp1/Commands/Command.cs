@@ -244,11 +244,11 @@ namespace Nine.Commands
                             {
                                 await ctx.RespondAsync($"Who is in position {x}? Enter 0 to stop adding to the list.");
 
-                                msg = await interactivity.WaitForMessageAsync(xm => xm.Content != "", TimeSpan.FromSeconds(60));
+                                msg = await interactivity.WaitForMessageAsync(xm => (xm.Content != $"Who is in position {x}? Enter 0 to stop adding to the list.") && (xm.Content != ""), TimeSpan.FromSeconds(60));
 
                                 string player = Player.GetPlayer(msg.Result.Content.ToString(), Player.PlayerSearch.Monicker, Player.PlayerSearch.Mention);
 
-                                if (player != "0")
+                                if (player != "")
                                 {
                                     newOrder.Add(player);
                                 }
