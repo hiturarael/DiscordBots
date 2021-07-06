@@ -115,29 +115,57 @@ namespace Nine.Commands
         [Command("AddThread")]
         [Aliases("AddPost", "NewPost", "NewThread")]
         [Description("Adds a new thread to the database for tracking.")]
-        public async Task AddThread(CommandContext ctx, [Description("Thread Title")] string Title, [Description("URL")] string URL, [Description("Alias")] string Alias)
+        public async Task AddThread(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
+            var interactivity = ctx.Client.GetInteractivity();
             string response;
+            string title, alias, url;
 
-            if ((URL.Contains("https://") || URL.Contains("http://")) && URL.Contains("srwignition.com"))
+            await ctx.RespondAsync("Ok senpai, What's the thread's title as entered on the forum?");
+
+            var msg = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Ok senpai, What's the thread's title as entered on the forum?"), TimeSpan.FromSeconds(60));
+            if (!msg.TimedOut)
             {
-                if (!URL.Contains("#post-"))
+                title = msg.Result.Content;
+
+                await ctx.TriggerTypingAsync();
+                await ctx.RespondAsync("Okay, What alias would you like to use when referencing this thread, senpai?");
+
+                msg = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Okay, What alias would you like to use when referencing this thread, senpai?"), TimeSpan.FromSeconds(60));
+
+                if(!msg.TimedOut)
                 {
-                    response = Posts.AddThread(Title, URL, Alias);
-                }
-                else
+                    alias = msg.Result.Content;
+
+                    await ctx.TriggerTypingAsync();
+                    await ctx.RespondAsync("Excellent, and what is the URL of the thread?");
+
+                    msg = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Excellent, and what is the URL of the thread?"), TimeSpan.FromSeconds(60));
+
+                    if(!msg.TimedOut)
+                    {
+                        url = msg.Result.Content;
+
+                        await ctx.TriggerTypingAsync();
+                        await ctx.RespondAsync("Perfect. I have added the thread to the database. Would you like to add a post order now?");
+
+
+
+
+                    } else
+                    {
+
+                    }
+                } else
                 {
-                    response = "The URL cannot be linked to an individual post. Try again meatbag.";
+
                 }
-            }
-            else
+            } else
             {
-                DiscordEmoji emoji = DiscordEmoji.FromName(ctx.Client, ":no:");
-                response = $"{emoji} The URL must be an actual url linking to Ignition.";
+
             }
 
-            await ctx.RespondAsync(response);
         }
 
         [Command("UpdateThread")]
