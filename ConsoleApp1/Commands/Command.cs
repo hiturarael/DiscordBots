@@ -9,6 +9,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.Interactivity;
 
 namespace Nine.Commands
 {
@@ -117,53 +118,43 @@ namespace Nine.Commands
         [Description("Adds a new thread to the database for tracking.")]
         public async Task AddThread(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync();
             var interactivity = ctx.Client.GetInteractivity();
             string response;
             string title, alias, url;
+            bool titleExists, aliasExists, urlExists;
 
-            await ctx.RespondAsync("Ok senpai, What's the thread's title as entered on the forum?");
+            string getThread = "Okay Senpai, What's the Thread's title as entered on the forum?";
 
-            var msg = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Ok senpai, What's the thread's title as entered on the forum?"), TimeSpan.FromSeconds(60));
-            if (!msg.TimedOut)
+            await BotRespond(ctx, getThread);
+
+            var msg = await GetInteraction(interactivity, getThread);
+
+            if(msg.GetType().Equals(typeof(string)))
             {
-                title = msg.Result.Content;
-
-                await ctx.TriggerTypingAsync();
-                await ctx.RespondAsync("Okay, What alias would you like to use when referencing this thread, senpai?");
-
-                msg = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Okay, What alias would you like to use when referencing this thread, senpai?"), TimeSpan.FromSeconds(60));
-
-                if(!msg.TimedOut)
+                await BotRespond(ctx, msg.ToString());
+            } else
+            {
+                InteractivityResult<DiscordMessage> dmsg = (InteractivityResult<DiscordMessage>)msg;
+                if(Posts.ThreadExists(dmsg.Result.Content))
                 {
-                    alias = msg.Result.Content;
-
-                    await ctx.TriggerTypingAsync();
-                    await ctx.RespondAsync("Excellent, and what is the URL of the thread?");
-
-                    msg = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains("Excellent, and what is the URL of the thread?"), TimeSpan.FromSeconds(60));
-
-                    if(!msg.TimedOut)
+                    List<ThreadData> threads = Posts.GetThreadData(dmsg.Result.Content);
+                    response = "It looks like one or more threads with that name already exists in the database:";
+                    
+                    foreach(ThreadData thread in threads)
                     {
-                        url = msg.Result.Content;
-
-                        await ctx.TriggerTypingAsync();
-                        await ctx.RespondAsync("Perfect. I have added the thread to the database. Would you like to add a post order now?");
-
-
-
-
-                    } else
-                    {
-
+                        response += $"\n-{thread.ThreadName}\n\t*{thread.ThreadAlias}";
                     }
+
+                    response += "\nDo you want to add it anyway? Please respond with Yes or No. (WARNING: Currently not functional)";
+
+                    await BotRespond(ctx, response);
+                    //yes or no
+
+
                 } else
                 {
 
                 }
-            } else
-            {
-
             }
 
         }
@@ -327,45 +318,35 @@ namespace Nine.Commands
         [Description("Links specified thread to chat")]
         public async Task LinkThread(CommandContext ctx, string Thread)
         {
-            await ctx.TriggerTypingAsync();
-
-            await ctx.RespondAsync(Posts.linkPost(Thread));
+            await BotRespond(ctx, Posts.linkPost(Thread));
         }
 
         [Command("ListActiveThreads")]
         [Description("Lists the active threads.")]
         public async Task ListActiveThreads(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync();
-
-            await ctx.RespondAsync(Posts.ListThreads(Posts.ThreadStatus.Open));
+            await BotRespond(ctx, Posts.ListThreads(Posts.ThreadStatus.Open));
         }
 
         [Command("ListCompleteThreads")]
         [Description("Lists the active threads.")]
         public async Task ListCompleteThreads(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync();
-
-            await ctx.RespondAsync(Posts.ListThreads(Posts.ThreadStatus.Complete));
+            await BotRespond(ctx, Posts.ListThreads(Posts.ThreadStatus.Complete));
         }
 
         [Command("ListAbandonedThreads")]
         [Description("Lists the active threads.")]
         public async Task ListAbandonedThreads(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync();
-
-            await ctx.RespondAsync(Posts.ListThreads(Posts.ThreadStatus.Abandoned));
+            await BotRespond(ctx, Posts.ListThreads(Posts.ThreadStatus.Abandoned));
         }
 
         [Command("ListHiatusThreads")]
         [Description("Lists the active threads.")]
         public async Task ListHiatusThreads(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync();
-
-            await ctx.RespondAsync(Posts.ListThreads(Posts.ThreadStatus.Hiatus));
+            await BotRespond(ctx, Posts.ListThreads(Posts.ThreadStatus.Hiatus));
         }
         #endregion
 
@@ -2154,6 +2135,27 @@ namespace Nine.Commands
 
             await ctx.RespondAsync(Factions.ListFactionMembers(Faction));
 
+        }
+        #endregion
+
+        #region Helpers
+        public async Task BotRespond(CommandContext ctx, string response)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(response);
+        }
+
+        public async Task<object> GetInteraction(InteractivityExtension interactivity, string botmsg, int timeout = 60)
+        {
+            var msg = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains(botmsg), TimeSpan.FromSeconds(timeout));
+
+            if(!msg.TimedOut)
+            {
+                return msg;
+            } else
+            {
+                return "It looks like you're busy Senpai. Try again later okay?";
+            }
         }
         #endregion
     }
