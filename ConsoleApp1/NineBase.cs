@@ -23,8 +23,8 @@ namespace Nine
     public class NineBot
     {
         public readonly EventId BotEventId = new EventId(9, "Nine");
-        public readonly static string config = "localconfig.json";
-        //public readonly static string config = "liveconfig.json";
+        //public readonly static string config = "localconfig.json";
+        public readonly static string config = "liveconfig.json";
 
         public DiscordClient Client { get; set; }
         public CommandsNextExtension Commands { get; set; }
@@ -189,7 +189,7 @@ namespace Nine
 
                 if (e.Exception is CommandNotFoundException)
                 {
-                    await e.Context.RespondAsync("I have no commands programmed with that name. Please use 9 help to get a list of commands.");
+                    //await e.Context.RespondAsync("I have no commands programmed with that name. Please use 9 help to get a list of commands.");
                 }
 
                 if (e.Exception is ArgumentException)
