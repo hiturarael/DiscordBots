@@ -55,7 +55,7 @@ namespace Nine.Commands
         }
 
         [Command("Boobs")]
-        [Aliases("Boob", "Breast", "Butts","Titties","Ass","Dick")]
+        [Aliases("Boob", "Breast", "Butts","Titties","Ass","Dick", "Bum", "Panties")]
         [Hidden]
         public async Task Lewd(CommandContext ctx)
         {

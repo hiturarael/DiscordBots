@@ -189,7 +189,7 @@ namespace Nine
 
                 if (e.Exception is CommandNotFoundException)
                 {
-                    await e.Context.RespondAsync("I have no commands programmed with that name. Please use 9 help to get a list of commands.");
+                    //await e.Context.RespondAsync("I have no commands programmed with that name. Please use 9 help to get a list of commands.");
                 }
 
                 if (e.Exception is ArgumentException)
