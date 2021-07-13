@@ -83,6 +83,12 @@ namespace Nine.Commands
             await ctx.RespondAsync(Posts.PostOrder(thread));
         }
 
+        [Command("PingMe")]
+        public async Task PingMe(CommandContext ctx)
+        {
+            await ctx.RespondAsync(ctx.User.Mention);
+        }
+
         [Command("WhosUp")]
         [Aliases("Next")]
         [Description("Queries the current post order and responds with the next in line.")]
@@ -107,8 +113,8 @@ namespace Nine.Commands
             }
             else
             {
+                await ctx.TriggerTypingAsync();
                 await ctx.RespondAsync(Posts.UpNext(thread, true));
-                await ctx.RespondAsync(ctx.User.Mention);
             }
         }
 
