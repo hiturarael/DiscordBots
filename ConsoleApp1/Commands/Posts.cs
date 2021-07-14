@@ -4,9 +4,17 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Collections;
 
 namespace Nine.Commands
 {
+    public struct ThreadData
+    {
+        public int ThreadID { get; set; }
+        public string ThreadName { get; set; }
+        public string ThreadAlias { get; set; }
+        public string ThreadURL { get; set; }
+    }
     public class Posts
     {
         public enum ThreadStatus
@@ -612,6 +620,22 @@ namespace Nine.Commands
         }
 
         #region Support
+        public static bool ThreadExists(string ThreadName)
+        {
+            string query = $"select sum(`Title` = '{ThreadName}') as n0 from {threadTable}";
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            DataRow row = dt.Rows[0];
+
+            if(row["n0"].ToString() != "0")
+            {
+                return true;
+            } else
+            {
+                return false;
+            }
+        }
+
         public static DataTable QueryNextPosts(int threadNum)
         {
             string lastPlayer = "";
@@ -938,6 +962,29 @@ namespace Nine.Commands
             {
                 return "";
             }
+        }
+
+        public static List<ThreadData> GetThreadData(string threadName)
+        {
+            List<ThreadData> threads = new List<ThreadData>();
+
+            string query = $"Select * From {threadTable} where Title = '{threadName}'";
+            
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            foreach(DataRow row in dt.Rows)
+            {
+                ThreadData data = new ThreadData();
+
+                data.ThreadID = (int)row["ID"];
+                data.ThreadName = (string)row["Title"];
+                data.ThreadAlias = (string)row["Alias"];
+                data.ThreadURL = (string)row["Alias"];
+
+                threads.Add(data);
+            }
+
+            return threads;
         }
         #endregion
 

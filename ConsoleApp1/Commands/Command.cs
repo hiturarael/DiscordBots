@@ -9,6 +9,7 @@ using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.Interactivity;
 
 namespace Nine.Commands
 {
@@ -121,29 +122,47 @@ namespace Nine.Commands
         [Command("AddThread")]
         [Aliases("AddPost", "NewPost", "NewThread")]
         [Description("Adds a new thread to the database for tracking.")]
-        public async Task AddThread(CommandContext ctx, [Description("Thread Title")] string Title, [Description("URL")] string URL, [Description("Alias")] string Alias)
+        public async Task AddThread(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync();
+            var interactivity = ctx.Client.GetInteractivity();
             string response;
+            string title, alias, url;
+            bool titleExists, aliasExists, urlExists;
 
-            if ((URL.Contains("https://") || URL.Contains("http://")) && URL.Contains("srwignition.com"))
+            string getThread = "Okay Senpai, What's the Thread's title as entered on the forum?";
+
+            await BotRespond(ctx, getThread);
+
+            var msg = await GetInteraction(interactivity, getThread);
+
+            if(msg.GetType().Equals(typeof(string)))
             {
-                if (!URL.Contains("#post-"))
+                await BotRespond(ctx, msg.ToString());
+            } else
+            {
+                InteractivityResult<DiscordMessage> dmsg = (InteractivityResult<DiscordMessage>)msg;
+                if(Posts.ThreadExists(dmsg.Result.Content))
                 {
-                    response = Posts.AddThread(Title, URL, Alias);
-                }
-                else
+                    List<ThreadData> threads = Posts.GetThreadData(dmsg.Result.Content);
+                    response = "It looks like one or more threads with that name already exists in the database:";
+                    
+                    foreach(ThreadData thread in threads)
+                    {
+                        response += $"\n-{thread.ThreadName}\n\t*{thread.ThreadAlias}";
+                    }
+
+                    response += "\nDo you want to add it anyway? Please respond with Yes or No. (WARNING: Currently not functional)";
+
+                    await BotRespond(ctx, response);
+                    //yes or no
+
+
+                } else
                 {
-                    response = "The URL cannot be linked to an individual post. Try again meatbag.";
+
                 }
             }
-            else
-            {
-                DiscordEmoji emoji = DiscordEmoji.FromName(ctx.Client, ":no:");
-                response = $"{emoji} The URL must be an actual url linking to Ignition.";
-            }
 
-            await ctx.RespondAsync(response);
         }
 
         [Command("UpdateThread")]
@@ -305,45 +324,35 @@ namespace Nine.Commands
         [Description("Links specified thread to chat")]
         public async Task LinkThread(CommandContext ctx, string Thread)
         {
-            await ctx.TriggerTypingAsync();
-
-            await ctx.RespondAsync(Posts.linkPost(Thread));
+            await BotRespond(ctx, Posts.linkPost(Thread));
         }
 
         [Command("ListActiveThreads")]
         [Description("Lists the active threads.")]
         public async Task ListActiveThreads(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync();
-
-            await ctx.RespondAsync(Posts.ListThreads(Posts.ThreadStatus.Open));
+            await BotRespond(ctx, Posts.ListThreads(Posts.ThreadStatus.Open));
         }
 
         [Command("ListCompleteThreads")]
         [Description("Lists the active threads.")]
         public async Task ListCompleteThreads(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync();
-
-            await ctx.RespondAsync(Posts.ListThreads(Posts.ThreadStatus.Complete));
+            await BotRespond(ctx, Posts.ListThreads(Posts.ThreadStatus.Complete));
         }
 
         [Command("ListAbandonedThreads")]
         [Description("Lists the active threads.")]
         public async Task ListAbandonedThreads(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync();
-
-            await ctx.RespondAsync(Posts.ListThreads(Posts.ThreadStatus.Abandoned));
+            await BotRespond(ctx, Posts.ListThreads(Posts.ThreadStatus.Abandoned));
         }
 
         [Command("ListHiatusThreads")]
         [Description("Lists the active threads.")]
         public async Task ListHiatusThreads(CommandContext ctx)
         {
-            await ctx.TriggerTypingAsync();
-
-            await ctx.RespondAsync(Posts.ListThreads(Posts.ThreadStatus.Hiatus));
+            await BotRespond(ctx, Posts.ListThreads(Posts.ThreadStatus.Hiatus));
         }
         #endregion
 
@@ -2132,6 +2141,27 @@ namespace Nine.Commands
 
             await ctx.RespondAsync(Factions.ListFactionMembers(Faction));
 
+        }
+        #endregion
+
+        #region Helpers
+        public async Task BotRespond(CommandContext ctx, string response)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(response);
+        }
+
+        public async Task<object> GetInteraction(InteractivityExtension interactivity, string botmsg, int timeout = 60)
+        {
+            var msg = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains(botmsg), TimeSpan.FromSeconds(timeout));
+
+            if(!msg.TimedOut)
+            {
+                return msg;
+            } else
+            {
+                return "It looks like you're busy Senpai. Try again later okay?";
+            }
         }
         #endregion
     }

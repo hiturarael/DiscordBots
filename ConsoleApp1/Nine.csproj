@@ -16,6 +16,7 @@
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.0.0-rc2" />
     <PackageReference Include="DSharpPlus.Interactivity" Version="4.0.0-rc2" />
     <PackageReference Include="MySql.Data" Version="8.0.25" />
+    <PackageReference Include="System.Collections" Version="4.3.0" />
     <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
   </ItemGroup>
 
