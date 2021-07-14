@@ -52,8 +52,7 @@ namespace Nine
                 AutoReconnect = true,
                 MinimumLogLevel = LogLevel.Debug,
                 Intents = DiscordIntents.All,
-                AlwaysCacheMembers = true
-                
+                AlwaysCacheMembers = true                
             };
 
             //instantiate client

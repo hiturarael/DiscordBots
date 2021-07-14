@@ -144,7 +144,7 @@ namespace Nine.Commands
         {
             string id = player.Replace("!@","").Replace("<","").Replace(">","");
 
-            string query = $"use `ignition`; SELECT `postorder`.`ThreadID`, `postorder`.`Player`, `threads`.`Title` FROM `postorder` INNER JOIN `threads` ON `postorder`.`ThreadID` = `threads`.`ID` WHERE `postorder`.`Player` LIKE \"%{id}%\"";
+            string query = $"use `{NineBot.cfgjson.Database}`; SELECT `postorder`.`ThreadID`, `postorder`.`Player`, `threads`.`Title` FROM `postorder` INNER JOIN `threads` ON `postorder`.`ThreadID` = `threads`.`ID` WHERE `postorder`.`Player` LIKE \"%{id}%\"";
             string resp = "";
 
             DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
