@@ -10,6 +10,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.Interactivity;
+using System.Text.RegularExpressions;
 
 namespace Nine.Commands
 {
@@ -130,10 +131,11 @@ namespace Nine.Commands
             var interactivity = ctx.Client.GetInteractivity();
             string response;
             string title, alias, url;
-            bool addExists;
+            bool addExists, success = false;
 
             string getThread = "Okay Senpai, What's the Thread's title as entered on the forum?";
             string dontAdd = "Alright, Do you want to add a different thread?";
+            string successString = "Thank you Senpai, the thread was successfully added.";
 
             string user = ctx.User.Username;
 
@@ -168,7 +170,13 @@ namespace Nine.Commands
 
                         if(alias != "")
                         {
+                            url = await URLWork(interactivity, ctx, user);
 
+                            if(url != "")
+                            {
+                                Posts.AddThread(title, url, alias);
+                                success = true;
+                            }
                         }
                     }
                     else
@@ -191,8 +199,20 @@ namespace Nine.Commands
 
                     if (alias != "")
                     {
+                        url = await URLWork(interactivity, ctx, user);
 
+                        if (url != "")
+                        {
+                            Posts.AddThread(title, url, alias);
+                            success = true;
+                            
+                        }
                     }
+                }
+
+                if(success)
+                {
+                    await BotRespond(ctx, successString);
                 }
             }
         }
@@ -2233,10 +2253,9 @@ namespace Nine.Commands
 
             await BotRespond(ctx, aliasQ);
 
-            string msg = await GetInteraction(interactivity, aliasQ, user);
-            string alias = "";
+            string alias = await GetInteraction(interactivity, aliasQ, user);
 
-            if (Posts.AliasExists(msg))
+            if (Posts.AliasExists(alias))
             {
                 string response = "It looks like one or more threads have that alias already, I can't allow you to add it. Would you like to change the Alias?";
 
@@ -2253,6 +2272,46 @@ namespace Nine.Commands
             }
 
             return alias.TrimStart('\"').TrimEnd('\"');
+        }
+
+        public async Task<string> URLWork(InteractivityExtension interactivity, CommandContext ctx, string user)
+        {
+            string response = "Okay! Last I need the URL of the thread. Preferably not a direct link to a post. What is the url?";
+
+            await BotRespond(ctx, response);
+            string url = await GetInteraction(interactivity, response, user);
+            url = url.TrimStart('\"').TrimEnd('\"');
+
+            if (url != "timeout")
+            {
+                if (url.Contains("/#post-"))
+                {
+                    response = "-sigh- Senpai, I said NOT a post link...";
+                    string[] urlArray = url.Split('/');
+                    url = "";
+
+                    foreach (string section in urlArray)
+                    {
+                        if (!section.Contains("#post-"))
+                        {
+                            url += $"{section}/";
+                        }
+                    }
+
+                    response += $"I changed the url to:\n {url}";
+
+                    await BotRespond(ctx, response);
+                }
+
+                if(Posts.UrlExists(url))
+                {
+                    url = "";
+                    response = "The url for that thread is already in use, I cannot add it.";
+                    await BotRespond(ctx, response);
+                }
+            } 
+
+            return url;
         }
         #endregion
     }
