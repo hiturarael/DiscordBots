@@ -15,6 +15,9 @@ namespace Nine.Commands
 {
     public class BaseCommand : BaseCommandModule
     {
+        private const string timeout = "It looks like you're busy Senpai. Try again later okay?";
+        private const string nothx = "Understood. Thank you, Senpai.";
+
         #region Basic
         [Command("ping")]
         [Description("Ping command, get snark then response time.")]
@@ -127,21 +130,24 @@ namespace Nine.Commands
             var interactivity = ctx.Client.GetInteractivity();
             string response;
             string title, alias, url;
-            bool titleExists, aliasExists, urlExists;
+            bool addExists;
 
             string getThread = "Okay Senpai, What's the Thread's title as entered on the forum?";
-            string timeout = "It looks like you're busy Senpai. Try again later okay?";
+            string dontAdd = "Alright, Do you want to add a different thread?";
+
+            string user = ctx.User.Username;
 
             await BotRespond(ctx, getThread);
 
-            string msg = await GetInteraction(interactivity, getThread, ctx.User.Username);
+            string msg = await GetInteraction(interactivity, getThread, user);
+            title = msg.TrimStart('\"').TrimEnd('\"');
 
-            if(msg == "timeout")
+            if (msg == "timeout")
             {
                 await BotRespond(ctx, timeout);
             } else
             {
-                if(Posts.ThreadExists(msg))
+                if (Posts.ThreadExists(msg))
                 {
                     List<ThreadData> threads = Posts.GetThreadData(msg);
                     response = "It looks like one or more threads with that name already exists in the database:";
@@ -153,37 +159,42 @@ namespace Nine.Commands
 
                     response += "\nDo you want to add it anyway? Please respond with Yes or No. (WARNING: Currently not functional)";
 
-                    await BotRespond(ctx, response);
+                    //yes or no
+                    addExists = await YesNoResponse(interactivity, ctx, response);
 
-                    msg = await GetInteraction(interactivity, response, ctx.User.Username);
+                    if(addExists)
+                    {
+                        alias = await Aliaswork(interactivity, ctx, user);
 
-                    if(msg == "timeout")
-                    {
-                        await BotRespond(ctx, timeout);
-                    } else
-                    {
-                        switch(msg.ToLower())
+                        if(alias != "")
                         {
-                            case "yes":
-                                await BotRespond(ctx, "You selected yes.");
-                                break;
-                            case "no":
-                                await BotRespond(ctx, "You selected no.");
-                                break;
-                            default:
-                                await BotRespond(ctx, "That's not a valid option, Senpai. Try again.");
-                                break;
+
                         }
                     }
-                    //yes or no
+                    else
+                    {
+                        bool addThread = await (YesNoResponse(interactivity, ctx, dontAdd));
 
-
-                } else
+                        if (addThread)
+                        {
+                            await AddThread(ctx);
+                        }
+                        else
+                        {
+                            await BotRespond(ctx, nothx);
+                        }                              
+                    }
+                }
+                else
                 {
+                    alias = await Aliaswork(interactivity, ctx, user);
 
+                    if (alias != "")
+                    {
+
+                    }
                 }
             }
-
         }
 
         [Command("UpdateThread")]
@@ -2183,6 +2194,65 @@ namespace Nine.Commands
             {
                 return "timeout";
             }
+        }
+
+        public async Task<bool> YesNoResponse(InteractivityExtension interactivity, CommandContext ctx, string response)
+        {
+            await BotRespond(ctx, response);
+
+            var msg = await GetInteraction(interactivity, response, ctx.User.Username);
+            bool ret = false;
+
+            if (msg == "timeout")
+            {
+                await BotRespond(ctx, timeout);
+            }
+            else
+            {
+                switch (msg.ToLower())
+                {
+                    case "yes":
+                        ret = true;
+                        break;
+                    case "no":
+                        ret = false;
+                        break;
+                    default:
+                        await BotRespond(ctx, "That's not a valid option, Senpai. Try again.");
+                        await YesNoResponse(interactivity, ctx, response);
+                        break;
+                }
+            }
+
+            return ret;
+        }
+
+        public async Task<string> Aliaswork(InteractivityExtension interactivity, CommandContext ctx, string user)
+        {
+            string aliasQ = "What is the alias you want to use for the thread?";
+
+            await BotRespond(ctx, aliasQ);
+
+            string msg = await GetInteraction(interactivity, aliasQ, user);
+            string alias = "";
+
+            if (Posts.AliasExists(msg))
+            {
+                string response = "It looks like one or more threads have that alias already, I can't allow you to add it. Would you like to change the Alias?";
+
+                bool addExists = await YesNoResponse(interactivity, ctx, response);
+
+                if (addExists)
+                {
+                    alias = await Aliaswork(interactivity, ctx, user);
+                }
+                else
+                {
+                    await BotRespond(ctx, nothx);
+                }
+            }
+
+            return alias.TrimStart('\"').TrimEnd('\"');
         }
         #endregion
     }

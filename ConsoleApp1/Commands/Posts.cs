@@ -636,6 +636,40 @@ namespace Nine.Commands
             }
         }
 
+        public static bool AliasExists(string Alias)
+        {
+            string query = $"select sum(`Alias` = '{Alias}') as n0 from {threadTable}";
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            DataRow row = dt.Rows[0];
+
+            if (row["n0"].ToString() != "0")
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public static bool UrlExists(string Url)
+        {
+            string query = $"select sum(`URL` = '{Url}') as n0 from {threadTable}";
+            DataTable dt = SqlCommand.ExecuteQuery(query, NineBot.cfgjson);
+
+            DataRow row = dt.Rows[0];
+
+            if (row["n0"].ToString() != "0")
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public static DataTable QueryNextPosts(int threadNum)
         {
             string lastPlayer = "";
