@@ -130,20 +130,20 @@ namespace Nine.Commands
             bool titleExists, aliasExists, urlExists;
 
             string getThread = "Okay Senpai, What's the Thread's title as entered on the forum?";
+            string timeout = "It looks like you're busy Senpai. Try again later okay?";
 
             await BotRespond(ctx, getThread);
 
-            var msg = await GetInteraction(interactivity, getThread);
+            string msg = await GetInteraction(interactivity, getThread, ctx.User.Username);
 
-            if(msg.GetType().Equals(typeof(string)))
+            if(msg == "timeout")
             {
-                await BotRespond(ctx, msg.ToString());
+                await BotRespond(ctx, timeout);
             } else
             {
-                InteractivityResult<DiscordMessage> dmsg = (InteractivityResult<DiscordMessage>)msg;
-                if(Posts.ThreadExists(dmsg.Result.Content))
+                if(Posts.ThreadExists(msg))
                 {
-                    List<ThreadData> threads = Posts.GetThreadData(dmsg.Result.Content);
+                    List<ThreadData> threads = Posts.GetThreadData(msg);
                     response = "It looks like one or more threads with that name already exists in the database:";
                     
                     foreach(ThreadData thread in threads)
@@ -154,6 +154,27 @@ namespace Nine.Commands
                     response += "\nDo you want to add it anyway? Please respond with Yes or No. (WARNING: Currently not functional)";
 
                     await BotRespond(ctx, response);
+
+                    msg = await GetInteraction(interactivity, response, ctx.User.Username);
+
+                    if(msg == "timeout")
+                    {
+                        await BotRespond(ctx, timeout);
+                    } else
+                    {
+                        switch(msg.ToLower())
+                        {
+                            case "yes":
+                                await BotRespond(ctx, "You selected yes.");
+                                break;
+                            case "no":
+                                await BotRespond(ctx, "You selected no.");
+                                break;
+                            default:
+                                await BotRespond(ctx, "That's not a valid option, Senpai. Try again.");
+                                break;
+                        }
+                    }
                     //yes or no
 
 
@@ -2151,16 +2172,16 @@ namespace Nine.Commands
             await ctx.RespondAsync(response);
         }
 
-        public async Task<object> GetInteraction(InteractivityExtension interactivity, string botmsg, int timeout = 60)
+        public async Task<string> GetInteraction(InteractivityExtension interactivity, string botmsg, string auth, int timeout = 60)
         {
-            var msg = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains(botmsg), TimeSpan.FromSeconds(timeout));
+            var msg = await interactivity.WaitForMessageAsync(xm => !xm.Content.Contains(botmsg) && xm.Author.Username == auth, TimeSpan.FromSeconds(timeout));
 
             if(!msg.TimedOut)
             {
-                return msg;
+                return msg.Result.Content;
             } else
             {
-                return "It looks like you're busy Senpai. Try again later okay?";
+                return "timeout";
             }
         }
         #endregion
